@@ -315,6 +315,11 @@ function FX(x,y,z,fx){return[x,y,z,.01,.01,.01,"#FFFFFF","x",fx];}
 function pot(cx,cy,r,h,c,rim=c,soil="#4A3020",z0=0){return[CYL(cx,cy,z0,r*.84,h,c,1.18),CYL(cx,cy,z0+h-.045,r*1.04,.05,rim),CYL(cx,cy,z0+h-.004,r*.94,.012,soil)];}
 const depthKey=a=>Array.isArray(a)?a[0]+a[3]/2+a[1]+a[4]/2:((a.L||a.R)[0]+(a.L||a.R)[3]+(a.L||a.R)[1]+(a.L||a.R)[4])/2;
 const byDepth=list=>list.sort((p,q)=>depthKey(p)-depthKey(q));
+// a soft round pet bed: a flat base, a ring of plump cushions (no outlines, so they melt into one puffy rim) and a cushion inside
+const BED_TOP=.1;
+function softBed(R,ring,pr,prz,cr){const o=[CYL(.5,.5,0,R,.035,"$A",1.03)];
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;o.push(SPH(.5+Math.cos(a)*ring,.5+Math.sin(a)*ring,.04+prz,pr,"$A","o",prz));}
+  o.push(SPH(.5,.5,.035+.04,cr,"$B","o",.04));return o;}
 // leaves fanning out from one point
 function rosette(cx,cy,z,n,len,rise,wd,cols,seed,dr=.03,k){const R=rng(seed),o=[];
   for(let i=0;i<n;i++){const a=i/n*Math.PI*2+R()*.6,l=len*(.75+R()*.45);o.push(LF(cx,cy,z,cx+Math.cos(a)*l,cy+Math.sin(a)*l,z+rise*(.55+R()*.75),wd*(.8+R()*.4),cols[i%cols.length],dr,undefined,k));}
@@ -401,17 +406,13 @@ const CATALOG = {
   trofeo:{name:"Trofeo",cat:"peque",small:true,w:1,d:1,price:150,tok:{G:"#F2C318",H:"#E3B219"},vars:[{n:"Oro"},{n:"Plata",tok:{G:"#D5DAE2",H:"#AEB4BE"}},{n:"Bronce",tok:{G:"#D08A50",H:"#A86A38"}}],
     parts:[[.3,.3,0,.4,.4,.15,"#3A3D48"],[.44,.44,.15,.12,.12,.3,"$H","cn"],[.3,.3,.45,.4,.4,.42,"$G","cn t1.25"],[.16,.45,.65,.12,.1,.2,"$G","n"],[.72,.45,.65,.12,.1,.2,"$G","n"]]},
   // pets
-  gato:{name:"Gato siamés",cat:"mascotas",pet:true,rig:"cat",maxH:.65,bedId:"camaGato",w:1,d:1,price:120,speed:.6,
+  gato:{name:"Gato siamés",cat:"mascotas",pet:true,boxy:true,rig:"cat",maxH:.55,sleepsOn:"bed",w:1,d:1,price:120,speed:.6,
     tok:{B:"#EADBC4",K:"#DCC6A6",W:"#F6EEE0",M:"#4A3528",T:"#4A3528",E:"#4A3528",L:"#5A4232",Y:"#5AA8E8"},parts:[]},
-  perro:{name:"Poodle negro",cat:"mascotas",pet:true,dog:true,curly:true,rig:"dog",maxH:.86,bedId:"camaPerro",w:1,d:1,price:120,speed:.85,
+  perro:{name:"Poodle negro",cat:"mascotas",pet:true,dog:true,boxy:true,rig:"dog",maxH:.7,bedId:"camaPerro",w:1,d:1,price:120,speed:.85,
     tok:{B:"#34343F",M:"#2C2C36",E:"#3A3A46",L:"#34343F",T:"#3A3A46",Y:"#5A3A22"},parts:[]},
-  camaGato:{name:"Cama de gato",cat:"mascotas",w:1,d:1,price:20,tok:{A:"#7A5AB8",B:"#D9CCF2"},
-    vars:[{n:"Lila"},{n:"Gris",tok:{A:"#5D6578",B:"#C9CED6"}},{n:"Rosa",tok:{A:"#D9708C",B:"#F7CBD8"}},{n:"Azul",tok:{A:"#3E6FB0",B:"#BBD4F2"}},{n:"Verde",tok:{A:"#4E7A5A",B:"#C2E0C8"}}],
-    parts:[[.06,.06,0,.88,.88,.1,"$A","c t1.06"],[.14,.14,.06,.72,.72,.05,"$B","cn"]]},
-  camaPerro:{name:"Cama de perro",cat:"mascotas",w:1,d:1,price:20,tok:{A:"#A8523A",B:"#E8D8BC"},
+  camaPerro:{name:"Cama de perro",cat:"mascotas",w:1,d:1,price:20,soft:true,tok:{A:"#A8523A",B:"#E8D8BC"},
     vars:[{n:"Terracota"},{n:"Gris",tok:{A:"#4A4F58",B:"#C9CED6"}},{n:"Azul",tok:{A:"#2F5FA8",B:"#BBD4F2"}},{n:"Verde",tok:{A:"#3E6B4A",B:"#C2E0C8"}},{n:"Roja",tok:{A:"#B8302A",B:"#F2C9C2"}}],
-    parts:[[.04,.08,0,.92,.84,.08,"$A","n"],[.04,.08,.08,.92,.1,.06,"$A","n"],[.04,.82,.08,.92,.1,.06,"$A","n"],[.04,.18,.08,.1,.64,.06,"$A","n"],[.14,.18,.06,.74,.64,.06,"$B","n"],
-      [.52,.245,.12,.16,.06,.05,"#F4F4F4","n"],[.49,.21,.12,.06,.12,.05,"#F4F4F4","n"],[.65,.21,.12,.06,.12,.05,"#F4F4F4","n"]]},
+    parts:softBed(.46,.35,.115,.062,.3)},
   // medical set
   camilla:{name:"Camilla",cat:"medico",w:1,d:2,price:70,tok:{A:"#5FA3C9"},vars:[{n:"Celeste"},{n:"Verde",tok:{A:"#5FAE8C"}},{n:"Negra",tok:{A:"#3A3D48"}}],
     parts:[[.08,.08,0,.06,.06,.42,"#9AA0AD","cn"],[.86,.08,0,.06,.06,.42,"#9AA0AD","cn"],[.08,1.86,0,.06,.06,.42,"#9AA0AD","cn"],[.86,1.86,0,.06,.06,.42,"#9AA0AD","cn"],
@@ -830,7 +831,7 @@ const WCAT={
       ctx.fillStyle=sh("#9CC27A");[[.22,.44,.13,.1],[.27,.24,.06,.11],[.52,.46,.07,.06],[.55,.27,.07,.12],[.74,.44,.16,.09],[.86,.2,.06,.04]].forEach(([x,y,rx,ry])=>{ctx.beginPath();ctx.ellipse(x*w,y*h,rx,ry,0,0,7);ctx.fill();});
       ctx.fillStyle=sh("#E8D8BC");ctx.beginPath();ctx.ellipse(.5*w,h*.08,.3,.025,0,0,7);ctx.fill();}},
 };
-const CATS=[["novedades","Novedades"],["camas","Camas y mesitas","Tu minifigura duerme en la cama durante los descansos."],["escritorio","Escritorios y sillas","Las computadoras muestran tu temporizador en vivo mientras te enfocas. Tu minifigura se sienta a estudiar en el escritorio."],["lamparas","Lámparas"],["relojes","Relojes"],["sala","Sala"],["peque","Cosas pequeñas","Se pueden poner encima de escritorios, mesas, mesitas y la mini nevera."],["plantas","Plantas","Las pequeñas se pueden poner encima de mesas y escritorios."],["mesa","Para mesas y escritorios","Detalles para poner encima de escritorios, mesas, mesitas y la mini nevera. Varios se mueven."],["mascotas","Mascotas","Cada mascota viene con su cama incluida y solo duerme en ella. Tócalas para cambiarles la raza."],["pared","Adornos de pared"],["medico","Set consultorio médico"],["italia","Set Italia"],["japon","Set Japón"]];
+const CATS=[["novedades","Novedades"],["camas","Camas y mesitas","Tu minifigura duerme en la cama durante los descansos."],["escritorio","Escritorios y sillas","Las computadoras muestran tu temporizador en vivo mientras te enfocas. Tu minifigura se sienta a estudiar en el escritorio."],["lamparas","Lámparas"],["relojes","Relojes"],["sala","Sala"],["peque","Cosas pequeñas","Se pueden poner encima de escritorios, mesas, mesitas y la mini nevera."],["plantas","Plantas","Las pequeñas se pueden poner encima de mesas y escritorios."],["mesa","Para mesas y escritorios","Detalles para poner encima de escritorios, mesas, mesitas y la mini nevera. Varios se mueven."],["mascotas","Mascotas","El perro viene con su propia cama. El gato se sube a tu cama para dormir."],["pared","Adornos de pared"],["medico","Set consultorio médico"],["italia","Set Italia"],["japon","Set Japón"]];
 const STYLES={floor:[{id:"lego",name:"Liso brillante",p:0},{id:"parque",name:"Parqué",p:50},{id:"baldosas",name:"Baldosas",p:40},{id:"moqueta",name:"Moqueta",p:30}],
   wall:[{id:"lego",name:"Bloques",p:0},{id:"liso",name:"Pintura lisa",p:20},{id:"ladrillo",name:"Ladrillo visto",p:60},{id:"madera",name:"Paneles de madera",p:50},{id:"rayas",name:"Papel a rayas",p:35}]};
 const COLORS={floor:["#C9965B","#8A5A36","#E3C9A0","#9DA3AE","#3A3D48","#5E8FD6","#8CCBA8","#D9D4C7"],
@@ -865,8 +866,11 @@ function migrate(s){
   s.stats.fails=s.stats.fails||0;s.v=5;if(s.session&&!s.session.kind)s.session.kind="focus";
   s.rooms.forEach(r=>r.walls.forEach(w=>{if(w.id==="reloj"&&w.v===undefined&&w.s+1.3>r.size)w.s=Math.max(.1,r.size-1.5);}));
   if(!s.bedGift){s.bedGift=true;const has=id=>s.rooms.some(r=>r.placed.some(p=>p.id===id))||(s.inv&&s.inv[id]);
-    if(has("gato")&&!has("camaGato"))s.inv.camaGato=(s.inv.camaGato||0)+1;
     if(has("perro")&&!has("camaPerro"))s.inv.camaPerro=(s.inv.camaPerro||0)+1;}
+  // items that no longer exist (the cat bed was retired): drop them and refund their price
+  s.rooms.forEach(r=>{r.placed=r.placed.filter(p=>{if(CATALOG[p.id]||WCAT[p.id])return true;if(p.id==="camaGato")s.coins=(s.coins||0)+20;return false;});
+    r.walls=r.walls.filter(w=>WCAT[w.id]);});
+  for(const id in s.inv||{})if(!CATALOG[id]&&!WCAT[id]){if(id==="camaGato")s.coins=(s.coins||0)+20*s.inv[id];delete s.inv[id];}
   if(!s.econ){s.econ=true;s.ownedStyles=s.ownedStyles||[];
     for(const r of s.rooms){for(const k of ["floor","wall"]){const id=r[k+"Style"],key=k+":"+id;if(id&&!s.ownedStyles.includes(key))s.ownedStyles.push(key);}}}
   if(s.cur>=s.rooms.length)s.cur=0;return s;}
@@ -1155,7 +1159,7 @@ function itemFoot(p){const d=CATALOG[p.id];return p.r%2?{w:d.d,d:d.w}:{w:d.w,d:d
 const PCACHE=new Map();
 const cloneP=b=>({...b,lf:b.lf&&{...b.lf,a:[...b.lf.a],b:[...b.lf.b]},rd:b.rd&&{...b.rd,a:[...b.rd.a],b:[...b.rd.b]}});
 function partCache(def,id,v,r){const k=id+"|"+(v||0)+"|"+(r||0);let e=PCACHE.get(k);
-  if(!e){const local=localParts(id,v),rot=rotParts(local,def.w,def.d,r),idx=new Map(rot.map((b,i)=>[b,i])),order=def.rig?rot.map((_,i)=>i):sortBoxes(rot).map(b=>idx.get(b));
+  if(!e){const local=localParts(id,v),rot=rotParts(local,def.w,def.d,r),idx=new Map(rot.map((b,i)=>[b,i])),order=def.rig?rot.map((_,i)=>i):def.soft?rot.map((b,i)=>[b.x+b.w/2+b.y+b.d/2+.3*(b.z+b.h/2),i]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]):sortBoxes(rot).map(b=>idx.get(b));
     e={local,order,sorted:order.map(i=>rot[i]),group:!!def.rig||rot.length>=10&&!def.pet&&!def.surface&&!def.desk&&!def.bed};PCACHE.set(k,e);}
   return e;}
 function itemBoxes(p,t){const def=CATALOG[p.id],e=partCache(def,p.id,p.v,p.r),z=p.z||0;let ps;
@@ -1671,6 +1675,72 @@ function petMesh(def,pose){const dog=!!def.dog,D=LP[dog?"dog":"cat"],tok=def.tok
   for(let i=0;i<n;i++)lpTube(T,pts[i],pts[i+1],D.tail[1]*(1-i*.08),D.tail[1]*(1-(i+1)*.08),i>=n-2?Tt:(dog?B:Tt),5);
   if(curly)lpEll(T,pts[n],[1,0,0],.04,.04,.038,Tt,7,4,14,.25);
   return{T,head:[hx,hy,hz+hr]};}
+// French poodle in the minifigure's style: smooth blocks, a big square head with the same dot eyes, glint and blush.
+// Same pose blending as the meshes; it turns in quarter steps like the minifigure.
+function poodlePose(st){const p={rz:.12,cz:.1,ch:.2,hz:.3,hx:0,fl:.04,hl:.06,ffx:0,hfx:0,shut:0,walk:st==="walk"?1:0};
+  if(st==="sit")Object.assign(p,{rz:.02,hl:0,hfx:.21,cz:.12,hz:.34,fl:.06});
+  if(st==="sleep")Object.assign(p,{rz:0,cz:0,ch:.12,hz:.12,hx:.05,fl:0,hl:0,ffx:.16,hfx:.21,shut:1});
+  return p;}
+function poodleBoxes(pose){const{st,prev,e,t,seed,dist,still}=pose,P=lerpPose(poodlePose(prev),poodlePose(st),e),K=.92,B="#33333E",F="#41414E",S="#50505C";
+  const wk=still?0:P.walk,s=Math.sin(dist/.2*Math.PI*2+seed)*wk,lift=k=>Math.max(0,k)*.035,bob=Math.abs(s)*.01;
+  const blink=P.shut>.5||(!still&&st!=="sleep"&&((t+seed*1.37)%4.1)<.13),look=still||st!=="idle"?0:.015*Math.sin(t*.45+seed),
+    wag=still?0:Math.sin(t*(st==="walk"?14:st==="sleep"?1:6)+seed)*(st==="sleep"?.004:.025),out=[];
+  const box=(x,y,z,w,d,h,c)=>{if(w>.002&&d>.002&&h>.002)out.push([.5+(x-.5)*K,.5+(y-.5)*K,z*K,w*K,d*K,h*K,c,"n"]);};
+  // paws (fluffy cubes) and legs; diagonal pairs swing like the minifigure's steps
+  for(const[lx,ly,odd]of[[.32,.39,0],[.32,.52,1],[.52,.39,1],[.52,.52,0]]){const front=lx>.4,k=odd?-s:s,px=lx+k*.04+(front?P.ffx:P.hfx),pz=lift(k);
+    if(front||P.cz>.05){box(px-.015,ly-.015,pz,.09,.09,.06,F);box(px,ly,pz+.06,.06,.06,(front?P.fl:P.hl)-pz,B);}}
+  const rz=P.rz+bob,cz=P.cz+bob,hz=P.hz+bob*1.2,hx=.52+P.hx,hy=.35+look;
+  box(.3,.38,rz,.22,.24,.13,B);box(.24,.37,rz-.01,.06,.26,.15,F);                     // body and rump puff
+  box(.52,.35,cz,.14,.3,P.ch,F);                                                       // curly chest
+  box(.66,.37,cz+P.ch*.7,.008,.26,.035,"#D23A30");box(.668,.48,cz+P.ch*.7-.03,.006,.04,.035,"#F2C318"); // collar and tag
+  box(.19,.47+wag,rz+.1,.05,.06,.08,B);box(.15,.44+wag*1.6,rz+.17,.1,.12,.1,F);     // tail and its pompom
+  box(hx,hy,hz,.3,.3,.27,B);                                                           // head
+  box(hx+.03,hy+.03,hz+.27,.24,.24,.09,F);box(hx+.08,hy+.08,hz+.36,.14,.14,.06,F);   // topknot
+  const ear=Math.sin(t*(st==="walk"?12:1.5)+seed)*(st==="walk"?.012:.004);
+  box(hx+.04,hy-.04,hz-.05+ear,.16,.04,.26,F);box(hx+.04,hy+.3,hz-.05-ear,.16,.04,.26,F); // hanging ears
+  const fx=hx+.3,eh=blink?.016:.08,ez=hz+(blink?.14:.1);                              // face on the front, like the minifigure's
+  box(fx,hy+.04,ez,.008,.05,eh,"#1C1C22");box(fx,hy+.21,ez,.008,.05,eh,"#1C1C22");
+  if(!blink){box(fx+.008,hy+.045,ez+.045,.004,.02,.025,"#FFFFFF");box(fx+.008,hy+.215,ez+.045,.004,.02,.025,"#FFFFFF");}
+  box(fx,hy+.01,hz+.06,.004,.04,.025,"#F2A0A0");box(fx,hy+.25,hz+.06,.004,.04,.025,"#F2A0A0");
+  box(fx,hy+.105,hz+.03,.07,.09,.08,S);box(fx+.07,hy+.125,hz+.08,.012,.05,.03,"#0E0E12");   // muzzle and nose
+  if(st==="sit")box(fx+.03,hy+.13,hz+.01,.03,.04,.02*e,"#EE7A8C");
+  return{parts:out,head:[.5+(hx+.15-.5)*K,.5+(hy+.15-.5)*K,(hz+.42)*K]};}
+// Siamese cat in the same block style: cream body, dark points and face mask, blue eyes with a glint, blush and whiskers
+function catPose(st){const p={rz:.12,cz:.12,hz:.25,hx:0,fl:.08,hl:.08,ffx:0,hfx:0,shut:0,tail:0,walk:st==="walk"?1:0};
+  if(st==="sit")Object.assign(p,{rz:.02,cz:.08,hz:.21,hx:-.03,hl:0,hfx:.15,fl:.04,tail:1});
+  if(st==="sleep")Object.assign(p,{rz:0,cz:0,hz:.13,hx:.05,fl:0,hl:0,ffx:.12,hfx:.15,shut:1,tail:1});
+  return p;}
+function catBoxes(pose){const{st,prev,e,t,seed,dist,still}=pose,P=lerpPose(catPose(prev),catPose(st),e),K=.82,B="#EADBC4",W="#F6EEE0",M="#4A3528",L="#5A4232";
+  const wk=still?0:P.walk,s=Math.sin(dist/.18*Math.PI*2+seed)*wk,lift=k=>Math.max(0,k)*.03,bob=Math.abs(s)*.008;
+  const blink=P.shut>.5||(!still&&st!=="sleep"&&((t+seed*1.37)%4.1)<.13),look=still||st!=="idle"?0:.015*Math.sin(t*.45+seed),
+    wag=still?0:Math.sin(t*(st==="walk"?3.5:1.2)+seed)*(st==="sleep"?.004:.02),out=[];
+  const box=(x,y,z,w,d,h,c)=>{if(w>.002&&d>.002&&h>.002)out.push([.5+(x-.5)*K,.5+(y-.5)*K,z*K,w*K,d*K,h*K,c,"n"]);};
+  for(const[lx,ly,odd]of[[.32,.41,0],[.32,.54,1],[.54,.41,1],[.54,.54,0]]){const front=lx>.4,k=odd?-s:s,px=lx+k*.035+(front?P.ffx:P.hfx),pz=lift(k);
+    if(front||P.cz>.04){box(px-.01,ly-.01,pz,.07,.07,.04,M);box(px,ly,pz+.04,.05,.05,(front?P.fl:P.hl)-pz,L);}}
+  const rz=P.rz+bob,cz=P.cz+bob,hz=P.hz+bob*1.2,hx=.5+P.hx,hy=.35+look;
+  box(.3,.4,rz,.16,.2,.13,B);box(.46,.4,cz,.16,.2,.13,B);box(.62,.43,cz+.02,.008,.14,.08,W);   // body in two halves (so it can sit) and chest
+  // tail: rises behind the body, or lies along its side when sitting / asleep
+  const up=1-P.tail;box(.25,.47,rz+.07,.05,.06,.05,M);
+  if(up>.02){box(.23,.47+wag,rz+.11,.05,.06,.18*up,M);box(.22,.47+wag*1.6,rz+.11+.18*up,.05,.06,.05*up,M);}
+  if(P.tail>.02)box(.3,.6,0,.3*P.tail,.05,.04,M);
+  box(hx,hy,hz,.3,.3,.25,B);                                                          // head
+  box(hx+.04,hy+.03,hz+.25,.1,.09,.06,M);box(hx+.06,hy+.045,hz+.31,.06,.06,.04,M);     // ears, stepped to a point
+  box(hx+.04,hy+.18,hz+.25,.1,.09,.06,M);box(hx+.06,hy+.195,hz+.31,.06,.06,.04,M);
+  box(hx+.14,hy+.045,hz+.25,.004,.06,.05,"#E8A0A8");box(hx+.14,hy+.195,hz+.25,.004,.06,.05,"#E8A0A8");
+  const fx=hx+.3;box(fx,hy+.055,hz+.01,.006,.19,.17,M);                                // dark Siamese mask on the face
+  const eh=blink?.014:.07,ez=hz+(blink?.12:.09);
+  for(const ey of[hy+.07,hy+.2]){box(fx+.006,ey,ez,.006,.05,eh,blink?"#1C1C22":"#5AA8E8");
+    if(!blink){box(fx+.012,ey+.018,ez+.008,.004,.015,eh-.016,"#111116");box(fx+.012,ey+.004,ez+.045,.004,.012,.015,"#FFFFFF");}}
+  box(fx,hy+.0,hz+.06,.004,.045,.025,"#F2A0A0");box(fx,hy+.255,hz+.06,.004,.045,.025,"#F2A0A0");    // blush
+  box(fx+.006,hy+.135,hz+.055,.008,.03,.02,"#E8A0A8");                                              // nose
+  box(fx+.006,hy-.02,hz+.05,.004,.07,.006,"#F4F2EC");box(fx+.006,hy+.25,hz+.05,.004,.07,.006,"#F4F2EC"); // whiskers
+  return{parts:out,head:[.5+(hx+.15-.5)*K,.5+(hy+.15-.5)*K,(hz+.38)*K]};}
+const petBlocks=def=>def.dog?poodleBoxes:catBoxes;
+// The cat sleeps on its owner's bed: the lowest mattress spot of the bed (the foot end, away from pillow and headboard)
+function bedSurface(b,cx,cy){let z=0;for(const q of itemBoxes(b).flatMap(k=>k.kids||[k])){const top=q.z+q.h;
+  if(top<1&&cx+.5>=q.x&&cx+.5<=q.x+q.w&&cy+.5>=q.y&&cy+.5<=q.y+q.d)z=Math.max(z,top);}return z;}
+function bedSpot(b){const f=itemFoot(b);let best=null;
+  for(let i=0;i<f.w;i++)for(let j=0;j<f.d;j++){const z=bedSurface(b,b.x+i,b.y+j);if(z>0&&(!best||z<best.z))best={uid:b.uid,cx:b.x+i,cy:b.y+j,z};}return best;}
 // rotate the local mesh to the heading `ang` about the cell centre and place it; store it relative to its box corner
 // pets are modelled at cell scale and drawn PET_SCALE times bigger around the cell centre
 const PET_SCALE=1.3;
@@ -1692,24 +1762,37 @@ function composite(kids,owner){let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
   for(const b of kids){x0=Math.min(x0,b.x);y0=Math.min(y0,b.y);z0=Math.min(z0,b.z);x1=Math.max(x1,b.x+b.w);y1=Math.max(y1,b.y+b.d);z1=Math.max(z1,b.z+b.h);}
   return{x:x0,y:y0,z:z0,w:x1-x0,d:y1-y0,h:z1-z0,kids,owner};}
 const restPose={st:"idle",prev:"idle",e:1,t:0,seed:0,dist:0,still:true};
-function petRest(id){return[meshBox(petMesh(CATALOG[id],restPose).T,0,0,0,0,undefined)];}
+function petRest(id){const def=CATALOG[id];if(def.boxy)return[composite(sortBoxes(petBlocks(def)(restPose).parts.map(a=>parsePart(a))),undefined)];return[meshBox(petMesh(def,restPose).T,0,0,0,0,undefined)];}
 // the pet's own bed under it, if it is standing on that cell
-function petBedUnder(p,w){const bid=CATALOG[p.id].bedId,bx=Math.round(w.x),by=Math.round(w.y);return bid&&RM.placed.find(b=>b.id===bid&&b.x===bx&&b.y===by)||null;}
+function petBedUnder(p,w){const def=CATALOG[p.id],bid=def.bedId,bx=Math.round(w.x),by=Math.round(w.y);
+  if(def.sleepsOn)return RM.placed.find(b=>{const d=CATALOG[b.id];if(!d.bed)return false;const f=itemFoot(b);return bx>=b.x&&bx<b.x+f.w&&by>=b.y&&by<b.y+f.d;})||null;
+  return bid&&RM.placed.find(b=>b.id===bid&&b.x===bx&&b.y===by)||null;}
 function petBoxes(p,t){const w=PETS.get(p.uid);if(!w)return[];const def=CATALOG[p.id],seed=p.uid*.73,st=w.state||"idle",prev=w.prevState||st,
     dur=st==="sleep"||prev==="sleep"?.9:st==="walk"?.25:.5,k=REDUCED?1:clamp((t-(w.stateT||0))/dur,0,1),dt=clamp(t-(w.lt??t),0,.1);w.lt=t;
   // smooth heading and a gentle hop into / out of the bed
   const ta=(w.dir||0)*Math.PI/2;if(w.ang===undefined||REDUCED)w.ang=ta;w.ang+=((((ta-w.ang+Math.PI)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)-Math.PI)*Math.min(1,dt*8);
-  const bed=petBedUnder(p,w),bt=bed&&Math.hypot(w.x-bed.x,w.y-bed.y)<.38?.12:0;w.bz=w.bz===undefined||REDUCED?bt:w.bz+(bt-w.bz)*Math.min(1,dt*6);
-  const zoff=w.bz+groundAt(w.x,w.y),{T,head}=petMesh(def,{st,prev,e:k*k*(3-2*k),t,seed,dist:w.dist||0,still:REDUCED});
-  const mb=meshBox(T,w.ang,w.x,w.y,zoff,p.uid);
-  if(st==="sleep"){const c=Math.cos(w.ang)*PET_SCALE,s=Math.sin(w.ang)*PET_SCALE;ZZZ.push([.5+(head[0]-.5)*c-(head[1]-.5)*s+w.x,.5+(head[0]-.5)*s+(head[1]-.5)*c+w.y,head[2]*PET_SCALE+zoff+.12]);}
-  // on its bed: the bed and the pet are one piece (cushion and back rim, the pet, then the front rim) so it always lies inside
-  if(bed){const bb=itemBoxes(bed).flatMap(b=>b.kids||[b]),mid=bed.x+bed.y+1,isFront=b=>b.x+b.w/2+b.y+b.d/2>mid+.3&&b.z+b.h>.1;
-    return[composite([...bb.filter(b=>!isFront(b)),mb,...bb.filter(isFront)],p.uid)];}
+  const bed=petBedUnder(p,w),cxr=Math.round(w.x),cyr=Math.round(w.y),bt=bed&&Math.hypot(w.x-cxr,w.y-cyr)<.38?(def.sleepsOn?bedSurface(bed,cxr,cyr):BED_TOP):0;w.bz=w.bz===undefined||REDUCED?bt:w.bz+(bt-w.bz)*Math.min(1,dt*6);
+  const zoff=w.bz+groundAt(w.x,w.y),pose={st,prev,e:k*k*(3-2*k),t,seed,dist:w.dist||0,still:REDUCED};let mb;
+  if(def.boxy){const{parts,head}=petBlocks(def)(pose),bs=rotParts(parts.map(a=>parsePart(a)),1,1,w.dir).map(b=>({...b,x:b.x+w.x,y:b.y+w.y,z:b.z+zoff,owner:p.uid}));
+    mb=composite(sortBoxes(bs),p.uid);if(st==="sleep"){let[hx,hy]=head;for(let i=0;i<(w.dir||0);i++)[hx,hy]=[1-hy,hx];ZZZ.push([hx+w.x,hy+w.y,head[2]+zoff]);}}
+  else{const{T,head}=petMesh(def,pose);mb=meshBox(T,w.ang,w.x,w.y,zoff,p.uid);
+    if(st==="sleep"){const c=Math.cos(w.ang)*PET_SCALE,s=Math.sin(w.ang)*PET_SCALE;ZZZ.push([.5+(head[0]-.5)*c-(head[1]-.5)*s+w.x,.5+(head[0]-.5)*s+(head[1]-.5)*c+w.y,head[2]*PET_SCALE+zoff+.12]);}}
+  // on its bed: the bed is drawn first and the pet on top of it, as one piece, so it can never slip under the bed
+  if(bed){const bb=itemBoxes(bed).flatMap(b=>b.kids||[b]);
+    if(!CATALOG[bed.id].bed)return[composite([...bb,mb],p.uid)];
+    // on the owner's bed: whatever is nearer the viewer and rises above the mattress (headboard, pillow), or hangs over
+    // the cat (a top bunk), is drawn after it; the mattress, blanket and the rest of the bed before it
+    const catD=w.x+w.y+1,surf=zoff,over=b=>(b.x+b.w/2+b.y+b.d/2>catD+.3&&b.z+b.h>surf+.03)||b.z>surf+.25;
+    return[composite([...bb.filter(b=>!over(b)),mb,...bb.filter(over)],p.uid)];}
   return[composite([mb],p.uid)];}
 // beds with their pet on them are drawn by petBoxes
 function bedsInUse(){const s=new Set();RM.placed.forEach(p=>{if(!CATALOG[p.id].pet)return;const w=PETS.get(p.uid),b=w&&petBedUnder(p,w);if(b)s.add(b.uid);});return s;}
-function petBedFor(p,w){const bid=CATALOG[p.id].bedId;if(!bid)return null;
+function petBedFor(p,w){const def=CATALOG[p.id];
+  if(def.sleepsOn){const beds=RM.placed.filter(b=>CATALOG[b.id].bed),taken=uid=>[...PETS.values()].some(o=>o!==w&&o.bedUid===uid);
+    if(w.bedUid){const b=beds.find(b=>b.uid===w.bedUid),s=b&&bedSpot(b);if(s)return s;w.bedUid=null;if(w.state==="sleep"){setState(w,"sit",0);w.until=0;}}
+    for(const b of beds)if(!taken(b.uid)){const s=bedSpot(b);if(s)return s;}
+    return null;}
+  const bid=def.bedId;if(!bid)return null;
   const beds=RM.placed.filter(b=>b.id===bid);
   if(w.bedUid){const b=beds.find(b=>b.uid===w.bedUid);if(b)return{uid:b.uid,cx:b.x,cy:b.y};w.bedUid=null;if(w.state==="sleep"){setState(w,"sit",0);w.until=0;}}
   for(const b of beds){let taken=false;for(const o of PETS.values())if(o!==w&&o.bedUid===b.uid)taken=true;if(!taken)return{uid:b.uid,cx:b.x,cy:b.y};}
