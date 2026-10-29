@@ -63,7 +63,7 @@ h1 span{color:var(--primary)}
 .roomcol{display:grid;gap:10px;min-width:0}
 .room{position:relative;border-radius:20px;background:#0A1A1F;overflow:hidden;min-width:0}
 .scroller{overflow:auto;overscroll-behavior:contain;scrollbar-width:none}.scroller::-webkit-scrollbar{display:none}
-canvas#room{display:block;touch-action:pan-y;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+canvas#room{display:block;touch-action:pan-x pan-y;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .modebar{position:absolute;left:10px;right:10px;bottom:10px;display:grid;gap:8px;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 10px;max-height:60%;overflow:auto}
 .modebar .r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .modebar b{flex:1 1 140px;min-width:0;font-size:14px}
@@ -126,7 +126,6 @@ textarea{width:100%;min-height:90px;font:500 12px ui-monospace,Menlo,monospace}
 .soundrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;background:var(--bg);border-radius:12px;padding:10px}
 .soundrow select{font:700 14px var(--body);border:2px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--surface);color:var(--ink)}
 .soundrow input[type=range]{flex:1 1 120px;min-width:0;accent-color:var(--accent)}
-.test{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 h2{font-family:var(--display);font-weight:400;font-size:19px;margin:20px 0 10px;letter-spacing:.3px}
 section > h2:first-child{margin-top:2px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
@@ -171,7 +170,9 @@ section > h2:first-child{margin-top:2px}
 .ach small{color:var(--muted);font-size:12px;font-weight:600}
 .ach .prog{height:6px;background:var(--line);border-radius:3px;margin-top:4px;overflow:hidden}
 .ach .prog i{display:block;height:100%;background:var(--accent)}
-.ach em{font-style:normal;font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.ach em{font-style:normal;font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.ach .achcoin{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:2px 8px 2px 6px;white-space:nowrap}
+.ach .achcoin.got{color:var(--muted);opacity:.75}
 .set{display:grid;gap:10px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border-radius:12px;padding:10px 12px;font-weight:700;font-size:14px}
 .setrow small{display:block;color:var(--muted);font-weight:600;font-size:12px;line-height:1.4}
@@ -284,7 +285,6 @@ body.focusing .focus-hud{display:flex}
           <select id="soundSel"><option value="off">Silencio</option><option value="lluvia">Lluvia</option><option value="blanco">Ruido blanco</option><option value="marron">Ruido marrón</option><option value="chimenea">Chimenea</option><option value="olas">Olas</option></select>
           <input type="range" id="soundVol" min="0" max="1" step="0.05" aria-label="Volumen">
         </div>
-        <label class="test"><input type="checkbox" id="testMode"> Modo prueba (1 minuto dura 1 segundo)</label>
       </div>
     </section>
 
@@ -382,8 +382,7 @@ const CATALOG = {
   escritorio:{name:"Escritorio con laptop",cat:"escritorio",desk:{seat:.75,chair:"#2B2F3A",accent:"#C8342B"},w:2,d:1,price:45,surface:.8,tok:{W:"#C98A4B",V:"#A87240",K:"#4A3020"},
     vars:[{n:"Roble"},{n:"Nogal",tok:{W:"#7A4E2D",V:"#6B4426",K:"#3A2416"}},{n:"Blanco",tok:{W:"#F2F0EA",V:"#E2DFD6",K:"#9AA0AD"}},{n:"Negro",tok:{W:"#3A3D48",V:"#2B2F3A",K:"#1C1F27"}}],
     parts:[[.06,.14,0,.1,.1,.72,"$K","n"],[.06,.76,0,.1,.1,.72,"$K","n"],[1.3,.14,0,.6,.72,.72,"$V","n"],[1.33,.86,.4,.54,.005,.03,"#2B2F3A","n"],[1.33,.86,.16,.54,.005,.03,"#2B2F3A","n"],
-      [0,.1,.72,2,.8,.08,"$W","n"],[.36,.28,.8,.78,.46,.03,"#A9B0BE","n"],[.4,.42,.83,.7,.24,.004,"#2B2F3A","n"],[.36,.28,.83,.78,.04,.52,"#2B3245","n"],[.39,.32,.86,.72,.005,.46,"#2A3A66","ne","timer"],
-      [1.5,.5,.8,.14,.14,.17,"#E8E4DA","cn"]]},
+      [0,.1,.72,2,.8,.08,"$W","n"],[.36,.28,.8,.78,.46,.03,"#A9B0BE","n"],[.4,.42,.83,.7,.24,.004,"#2B2F3A","n"],[.36,.28,.83,.78,.04,.52,"#2B3245","n"],[.39,.32,.86,.72,.005,.46,"#2A3A66","ne","timer"]]},
   mesa:{name:"Mesa de centro",cat:"sala",w:2,d:1,price:30,surface:.45,tok:{W:"#C98A4B",K:"#4A3020"},
     vars:[{n:"Roble"},{n:"Nogal",tok:{W:"#7A4E2D",K:"#3A2416"}},{n:"Blanca",tok:{W:"#F2F0EA",K:"#9AA0AD"}},{n:"Negra",tok:{W:"#3A3D48",K:"#1C1F27"}}],
     parts:[[.1,.18,0,.08,.08,.38,"$K","n"],[1.82,.18,0,.08,.08,.38,"$K","n"],[.1,.74,0,.08,.08,.38,"$K","n"],[1.82,.74,0,.08,.08,.38,"$K","n"],[.06,.12,.12,1.88,.76,.04,"$K","n"],[0,.1,.38,2,.8,.07,"$W","n"]]},
@@ -916,7 +915,7 @@ function newRoom(name,size){return{name,size,placed:[],walls:[],floorStyle:"lego
 function freshState(){const r=newRoom("Dormitorio",8);
   r.placed=[{uid:5,id:"escritorio",x:5,y:4,r:1}];r.walls=[];
   return{v:5,coins:300,achPaid:[],inv:{},rooms:[r],cur:0,nextUid:6,light:"auto",weather:"auto",sound:{type:"off",vol:.5},ownedStyles:["floor:lego","wall:lego"],
-    econ:true,stats:{sessions:0,minutes:0,fails:0},log:[],tags:["General","Neuro","Farmacología","Idiomas"],tag:"General",dur:25,brk:5,lbrk:15,every:4,autoBreak:true,strict:true,cycle:0,
+    econ:true,stats:{sessions:0,minutes:0,fails:0},log:[],tags:["General","Neuro","Farmacología","Idiomas"],tag:"General",dur:25,brk:5,lbrk:15,every:4,autoBreak:true,cycle:0,
     fig:{shirt:"#C8342B",pants:"#2B3A55",hair:"#3A2416",skin:"#F7D117",bata:false},nick:"",myCode:null,session:null,test:false,gift1:true,bedGift:true};}
 function migrate(s){
   if(!s.rooms){const old={roble:"#C9965B",gris:"#9DA3AE",menta:"#8CCBA8",azul:"#5E8FD6",crema:"#EAD9BC",salvia:"#A9C2A0",terracota:"#D58B6A",noche:"#3E4C78"};
@@ -1190,7 +1189,7 @@ function analogFace(c,cx,cy,r,o,now){c.fillStyle=o.face;c.beginPath();c.arc(cx,c
   c.restore();c.fillStyle=o.sec;c.beginPath();c.arc(cx,cy,r*.05,0,7);c.fill();c.fillStyle="rgba(255,255,255,.5)";c.beginPath();c.arc(cx,cy,r*.018,0,7);c.fill();
   c.fillStyle="rgba(255,255,255,.13)";c.beginPath();c.ellipse(cx-r*.3,cy+r*.35,r*.5,r*.2,-.6,0,7);c.fill();}
 function shadeOverlay(c,W,H){if(FXDIM>0){c.fillStyle=`rgba(8,10,28,${FXDIM})`;c.fillRect(0,0,W,H);}}
-function fmtLeft(){const ses=S.session;if(!ses)return null;const left=Math.max(0,ses.endAt-Date.now()),ms=S.test?left*60:left,s=Math.ceil(ms/1000);
+function fmtLeft(){const ses=S.session;if(!ses)return null;const left=Math.max(0,ses.endAt-Date.now()),s=Math.ceil(left/1000);
   return{txt:String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"),prog:1-left/ses.total,focus:ses.kind==="focus",tag:ses.tag};}
 const SCREENS={"":{a:"#16213E",b:"#2C4A8A",tx:"#FFFFFF",ac:"#FF6B5B",ok:"#5CF29A"},m:{a:"#1A2340",b:"#3A4F9A",tx:"#FFFFFF",ac:"#FF6B5B",ok:"#5CF29A"},
   g:{a:"#12061F",b:"#3A0F5A",tx:"#FFFFFF",ac:"#FF4FD8",ok:"#4FF0FF"},r:{a:"#031208",b:"#06240F",tx:"#5CFF8A",ac:"#5CFF8A",ok:"#B6FF9A",mono:true}};
@@ -1350,17 +1349,16 @@ const ZMIN=.6,ZMAX=3.2;
 // The live turn: ROT.th is the whole angle; its nearest quarter is VIEW (which far walls, faces and draw order apply)
 // and the rest, at most 45° either way, turns the projection itself (pt). At ±45° the face that changes hands is seen
 // edge-on, so crossing into the next quarter is seamless. Face brightness follows the face's angle on screen.
-const ROT={th:0,v:0,to:null,drag:false};
+const ROT={th:0,to:null};
 function setTheta(th){ROT.th=th;const q=Math.round(th/(Math.PI/2)),v=((q%4)+4)%4;if(v!==VIEW){VIEW=v;refreshViewWalls();selW=null;updateBar();}ROT.phi=th-q*Math.PI/2;applyCam();lastDraw=0;}
 function applyCam(){if(!P0)return;CAM.t=performance.now();const f=ROT.phi||0;
   P={...P0,tw:P0.tw*CAM.z,th:P0.th*CAM.z,u:P0.u*CAM.z,ox:CAM.ox,oy:CAM.oy,rc:Math.cos(f),rs:Math.sin(f)};}
 function setKey(f){const c=Math.cos(f),s=Math.sin(f);KEY.right=.71+.09*(c-s);KEY.left=.71-.09*(s+c);}
-// turn to an angle smoothly (buttons, going home); dragging the room turns it directly and lets go with some spin
-function rotTo(th){ROT.to=th;ROT.v=0;lastDraw=0;}
+// turn smoothly to an angle (the rotate and home buttons are the only way the room turns)
+function rotTo(th){ROT.to=th;lastDraw=0;}
 function rotHome(){rotTo(Math.round(ROT.th/(2*Math.PI))*2*Math.PI);}
-function stepRot(dt){if(ROT.drag)return false;
-  if(ROT.to!==null){const d=ROT.to-ROT.th;if(Math.abs(d)<.002||REDUCED){setTheta(ROT.to);ROT.to=null;}else setTheta(ROT.th+d*Math.min(1,dt*11));return true;}
-  if(Math.abs(ROT.v)>.05){setTheta(ROT.th+ROT.v*dt);ROT.v*=Math.exp(-dt*4.5);return true;}ROT.v=0;return false;}
+function stepRot(dt){if(ROT.to===null)return false;
+  const d=ROT.to-ROT.th;if(Math.abs(d)<.002||REDUCED){setTheta(ROT.to);ROT.to=null;}else setTheta(ROT.th+d*Math.min(1,dt*11));return true;}
 // keep the middle of the room on screen
 function clampCam(){CAM.z=clamp(CAM.z,ZMIN,ZMAX);applyCam();const[cx,cy]=pt(P,N/2,N/2,WALL_H*.3),W=P0.W,H=P0.H;
   CAM.ox+=clamp(cx,W*.08,W*.92)-cx;CAM.oy+=clamp(cy,H*.08,H*.92)-cy;applyCam();}
@@ -2136,7 +2134,7 @@ function frameRoom(t){ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHide();refre
   // the static layer is redrawn when the scene changes; while the camera moves it is reused, scaled and shifted, and
   // redrawn sharp once the camera has rested for a moment; a turn changes its shape, so it is redrawn every frame
   // (without its blurs, which are redone once the turn stops)
-  const sc=STATIC.cam,moved=!sc||sc.z!==CAM.z||sc.ox!==CAM.ox||sc.oy!==CAM.oy;FAST=ROT.drag||ROT.to!==null||ROT.v!==0;
+  const sc=STATIC.cam,moved=!sc||sc.z!==CAM.z||sc.ox!==CAM.ox||sc.oy!==CAM.oy;FAST=ROT.to!==null;
   if(key!==STATIC.key){drawBackdrop();drawStatic(lights);STATIC.key=key;STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
   else if(sc.th!==ROT.th||sc.fast&&!FAST||moved&&performance.now()-CAM.t>180){drawStatic(lights);STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(BACK.cv,0,0);ctx.restore();
@@ -2180,7 +2178,7 @@ let lastT=performance.now(),lastDraw=0,roomVisible=true;
 const FRAME_MS=REDUCED?500:COARSE?40:33;
 if(window.IntersectionObserver)new IntersectionObserver(es=>{roomVisible=es[es.length-1].isIntersecting;}).observe(ROOMBG);
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.1,(now-lastT)/1000);lastT=now;if(document.hidden)return;
-  updateEntities(dt,now/1000);const turning=stepRot(dt)||ROT.drag;   // a turn is drawn every display frame
+  updateEntities(dt,now/1000);const turning=stepRot(dt);   // a turn is drawn every display frame
   if(!roomVisible||!turning&&now-lastDraw<FRAME_MS)return;lastDraw=now;try{frame(now/1000);}catch(e){console.error(e);}}
 
 // ================= interaction =================
@@ -2210,15 +2208,11 @@ function dragTo(sx,sy){const o=G&&G.off;let h;
   if(placing.kind==="floor"){if(o){const c=toCell(sx,sy),f=itemFoot({id:placing.id,r:placing.r});h={x:clamp(c.x+o.x,0,N-f.w),y:clamp(c.y+o.y,0,N-f.d)};}else h=hoverCell(sx,sy);}
   else h=wallHover(sx,sy,o);
   if(h&&JSON.stringify(h)!==JSON.stringify(hover)){hover=h;updateBar();}}
-// two fingers: pinch to zoom and drag to pan (cancels any hold or drag the first finger started)
-const TOUCH=new Map();let PINCH=null;
-function pinchState(){const[a,b]=[...TOUCH.values()];return{d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,m:[(a[0]+b[0])/2,(a[1]+b[1])/2]};}
-// one finger dragging the room sideways turns it live (a finger moving mostly up or down
-// scrolls the page instead); with a mouse the room turns only from the buttons
-function endRot(g){ROT.drag=false;cv.style.cursor="";if(performance.now()-g.rot[1]>90)ROT.v=0;}
-cv.addEventListener("pointerdown",e=>{const[sx,sy]=evtPos(e);ROT.v=0;
-  if(e.pointerType==="touch"){TOUCH.set(e.pointerId,[sx,sy]);if(TOUCH.size===2){if(G){clearTimeout(G.timer);if(G.rot)endRot(G);G=null;}const s=pinchState();PINCH={...s,z0:CAM.z,o0:[CAM.ox,CAM.oy]};return;}}
-  if(G||PINCH)return;
+// a second finger cancels whatever the first one started and does nothing itself (no pinch zoom or two-finger pan)
+const TOUCH=new Set();let MULTI=false;
+cv.addEventListener("pointerdown",e=>{const[sx,sy]=evtPos(e);
+  if(e.pointerType==="touch"){TOUCH.add(e.pointerId);if(TOUCH.size>1){MULTI=true;if(G){clearTimeout(G.timer);G=null;}return;}}
+  if(G||MULTI)return;
   if(e.pointerType==="mouse"&&e.button!==0)return;
   G={id:e.pointerId,touch:e.pointerType!=="mouse",x0:sx,y0:sy,last:[sx,sy],item:null,timer:0,drag:false,moved:false};
   if(placing||ON.visit)return;
@@ -2226,32 +2220,25 @@ cv.addEventListener("pointerdown",e=>{const[sx,sy]=evtPos(e);ROT.v=0;
   else if(!uid){const wu=hitWall(sx,sy),it=wu&&RM.walls.find(q=>q.uid===wu);if(it)G.item={it};}
   if(G.item&&G.touch)G.timer=setTimeout(startDrag,HOLD_MS);});
 cv.addEventListener("pointermove",e=>{const[sx,sy]=evtPos(e);
-  if(e.pointerType==="touch"&&TOUCH.has(e.pointerId)){TOUCH.set(e.pointerId,[sx,sy]);if(PINCH&&TOUCH.size>=2){const s=pinchState(),z=clamp(PINCH.z0*s.d/PINCH.d,ZMIN,ZMAX),k=z/PINCH.z0;
-    CAM.z=z;CAM.ox=s.m[0]-(PINCH.m[0]-PINCH.o0[0])*k;CAM.oy=s.m[1]-(PINCH.m[1]-PINCH.o0[1])*k;clampCam();lastDraw=0;return;}}
   if(!G){if(placing&&e.pointerType==="mouse"){const h=hoverAt(sx,sy);if(h){const ch=JSON.stringify(h)!==JSON.stringify(hover);hover=h;if(ch)updateBar();}}return;}
   if(e.pointerId!==G.id)return;G.last=[sx,sy];
-  // the room follows the pointer about as fast as its front corner moves on screen; the release speed keeps it spinning
-  if(G.rot){const now=performance.now(),da=-(sx-G.rot[0])*2/(N*P.tw),dt=Math.max(4,now-G.rot[1])/1000;setTheta(ROT.th+da);
-    ROT.v=clamp(ROT.v*.5+da/dt*.5,-6,6);G.rot=[sx,now];return;}
   if(G.drag){dragTo(sx,sy);return;}
   if(Math.hypot(sx-G.x0,sy-G.y0)<=TAP_PX)return;G.moved=true;
   if(placing||(!G.touch&&G.item))startDrag();
-  else if(G.touch&&Math.abs(sx-G.x0)>Math.abs(sy-G.y0)){clearTimeout(G.timer);G.rot=[G.x0,performance.now()];ROT.drag=true;ROT.to=null;ROT.v=0;
-    cv.style.cursor="grabbing";try{cv.setPointerCapture(G.id);}catch(e){}}
-  else{clearTimeout(G.timer);G=null;}});  // a finger moving up or down scrolls the page; a mouse drag on empty space does nothing
-cv.addEventListener("pointerup",e=>{if(TOUCH.delete(e.pointerId)&&PINCH&&TOUCH.size<2){PINCH=null;return;}
-  if(!G||e.pointerId!==G.id)return;const g=G;G=null;clearTimeout(g.timer);if(g.rot){endRot(g);return;}
+  else{clearTimeout(G.timer);G=null;}});  // a finger that moves before the hold scrolls the page; a mouse drag on empty space does nothing
+cv.addEventListener("pointerup",e=>{if(TOUCH.delete(e.pointerId)&&MULTI){if(!TOUCH.size)MULTI=false;return;}
+  if(!G||e.pointerId!==G.id)return;const g=G;G=null;clearTimeout(g.timer);
   if(g.drag){if(placing&&hover)tryPlace(hover);return;}
   if(!g.moved){const[sx,sy]=evtPos(e);onTap(sx,sy,g.touch);}});
-cv.addEventListener("pointercancel",e=>{TOUCH.delete(e.pointerId);if(TOUCH.size<2)PINCH=null;if(G&&e.pointerId===G.id){clearTimeout(G.timer);if(G.rot)endRot(G);G=null;}});
+cv.addEventListener("pointercancel",e=>{TOUCH.delete(e.pointerId);if(!TOUCH.size)MULTI=false;if(G&&e.pointerId===G.id){clearTimeout(G.timer);G=null;}});
 // mouse wheel: zoom towards the cursor
 cv.addEventListener("wheel",e=>{e.preventDefault();const[sx,sy]=evtPos(e);zoomAt(sx,sy,Math.exp(-e.deltaY*(e.deltaMode?.05:.0015)));},{passive:false});
 const Q=Math.PI/2,rotStep=d=>rotTo((ROT.to??Math.round(ROT.th/Q)*Q)+d*Q);
 document.getElementById("vRotL").onclick=()=>rotStep(-1);document.getElementById("vRotR").onclick=()=>rotStep(1);
 const zoomBtn=f=>{if(P0)zoomAt(P0.W/2,P0.H/2,f);};document.getElementById("vZin").onclick=()=>zoomBtn(1.25);document.getElementById("vZout").onclick=()=>zoomBtn(.8);document.getElementById("vHome").onclick=()=>{resetCam();rotHome();};
-// stop the page from scrolling only while something is being dragged (or a ghost is waiting to be dragged)
+// stop the page from scrolling while something is dragged, and two fingers from zooming the page
 cv.addEventListener("touchstart",e=>{if(placing||e.touches.length>1)e.preventDefault();},{passive:false});
-cv.addEventListener("touchmove",e=>{if(placing||G?.drag||G?.rot||e.touches.length>1)e.preventDefault();},{passive:false});
+cv.addEventListener("touchmove",e=>{if(placing||G?.drag||e.touches.length>1)e.preventDefault();},{passive:false});
 cv.addEventListener("contextmenu",e=>e.preventDefault());
 function onTap(sx,sy,touch){
   if(placing){const c=hoverAt(sx,sy);if(!c)return;let same=!touch;
@@ -2364,7 +2351,6 @@ function startPlacing(id){if(ON.visit){toast("Estás de visita: vuelve a tu habi
 // ================= timer =================
 const DURS=[25,35,45,60];
 const reward=m=>WIN_COINS;
-const msPerMin=()=>S.test?1000:60000;
 const chips=document.getElementById("chips"),customBox=document.getElementById("customBox"),customMin=document.getElementById("customMin");
 function renderChips(){const busy=!!S.session;chips.innerHTML="";const isCustom=!DURS.includes(S.dur);
   [...DURS,"Otro"].forEach(m=>{const b=document.createElement("button");b.className="chip";b.textContent=m==="Otro"?(isCustom?S.dur+" min":"Otro"):m+" min";
@@ -2379,7 +2365,7 @@ customMin.onchange=()=>{customMin.value=S.dur;renderChips();};
 let audio,wake,giveUpArmed=0;
 const startBtn=document.getElementById("startBtn");
 function startSession(kind){const dur=kind==="focus"?S.dur:kind==="long"?S.lbrk:S.brk;
-  S.session={kind:kind==="focus"?"focus":"break",long:kind==="long",dur,endAt:Date.now()+dur*msPerMin(),total:dur*msPerMin(),tag:S.tag};
+  S.session={kind:kind==="focus"?"focus":"break",long:kind==="long",dur,endAt:Date.now()+dur*60000,total:dur*60000,tag:S.tag};
   save();renderChips();tick();}
 startBtn.onclick=async()=>{try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume();}catch(e){}
   if(!S.session){startSession("focus");try{wake=await navigator.wakeLock?.request("screen");}catch(e){}return;}
@@ -2393,7 +2379,7 @@ function fmtMin(m){m=Math.round(m);if(m<60)return m+" min";const h=Math.floor(m/
 function tick(){const arc=document.getElementById("arc"),clock=document.getElementById("clock"),sub=document.getElementById("clockSub"),ph=document.getElementById("phase"),badge=document.getElementById("focusBadge");
   const ses=S.session;
   if(ses){const left=ses.endAt-Date.now();if(left<=0){ses.kind==="focus"?finishFocus():finishBreak();return;}
-    clock.textContent=S.test?fmt(left*60):fmt(left);sub.textContent=ses.kind==="focus"?`${ses.tag} · ${ses.dur} min`:`${ses.long?"descanso largo":"descanso"} · ${ses.dur} min`;
+    clock.textContent=fmt(left);sub.textContent=ses.kind==="focus"?`${ses.tag} · ${ses.dur} min`:`${ses.long?"descanso largo":"descanso"} · ${ses.dur} min`;
     arc.style.strokeDashoffset=326.73*(1-left/ses.total);arc.style.stroke=ses.kind==="focus"?"var(--primary)":"var(--green)";
     ph.textContent=ses.kind==="focus"?"Enfoque":"Descanso";ph.className="phase"+(ses.kind==="focus"?"":" brk");
     if(ses.kind==="break"){startBtn.textContent="Terminar descanso";startBtn.className="btn go";}
@@ -2420,15 +2406,7 @@ function finishBreak(){S.session=null;save();chime();renderChips();tick();toast(
 function chime(){if(!audio)return;try{[0,.18,.36].forEach((t,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=[660,880,1320][i];
   g.gain.setValueAtTime(.0001,audio.currentTime+t);g.gain.exponentialRampToValueAtTime(.25,audio.currentTime+t+.02);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+t+.4);
   o.connect(g).connect(audio.destination);o.start(audio.currentTime+t);o.stop(audio.currentTime+t+.45);});}catch(e){}}
-document.getElementById("testMode").checked=S.test;
-document.getElementById("testMode").onchange=e=>{if(S.session){e.target.checked=S.test;toast("Cambia el modo cuando no haya sesión");return;}S.test=e.target.checked;save();};
-// strict mode: leaving the app for more than 10 seconds loses the session
-document.addEventListener("visibilitychange",()=>{const ses=S.session;
-  if(document.hidden){if(ses&&ses.kind==="focus"&&S.strict){ses.hiddenAt=Date.now();save();}return;}
-  if(ses&&ses.hiddenAt){const h=ses.hiddenAt,away=Math.min(Date.now(),ses.endAt)-h;delete ses.hiddenAt;save();
-    if(h<ses.endAt&&away>10000&&S.strict)failSession(`Saliste de la app durante ${Math.round(away/1000)} segundos. En modo estricto eso cuenta como rendirse.`);}
-  tick();});
-(function checkHiddenOnLoad(){const ses=S.session;if(ses&&ses.hiddenAt){const away=Math.min(Date.now(),ses.endAt)-ses.hiddenAt;delete ses.hiddenAt;if(away>10000&&S.strict)setTimeout(()=>failSession("Cerraste la app durante la sesión. En modo estricto eso cuenta como rendirse."),300);}})();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick();});
 
 // ================= sounds =================
 const SND={ac:null,nodes:[],timer:null,gain:null};
@@ -2480,7 +2458,7 @@ function renderProg(){const st=STATS=computeStats(),v=document.getElementById("v
     <h2>Últimos 7 días</h2><div class="week">${week.map(([d,m,t])=>`<div class="${t?"today":""}"><span>${m?Math.round(m):""}</span><i style="height:${Math.round(m/wmax*96)}px"></i>${d}</div>`).join("")}</div>
     <h2>Calendario</h2><p class="sub">Cada cuadro es un día. Más amarillo, más minutos de estudio.</p><div class="heatwrap"><div class="heat">${cells}</div></div>
     <h2>Por materia</h2>${tags.length?`<div class="tagbars">${tags.map(([t,m])=>`<div class="tagbar"><span>${escapeHtml(t)}</span><i style="width:${Math.max(4,m/tmax*100)}%"></i><em>${fmtMin(m)}</em></div>`).join("")}</div>`:`<div class="empty">Cuando completes sesiones, aquí verás cuánto tiempo le dedicaste a cada materia.</div>`}
-    <h2>Logros</h2><div class="achs">${ACHS.map(a=>{const cur=Math.min(a.v(st),a.g),done=cur>=a.g;return`<div class="ach ${done?"done":""}"><div class="medal">${done?"★":Math.floor(cur/a.g*100)+"%"}</div><div><b>${a.n}</b><small>${a.d}</small>${done?"":`<div class="prog"><i style="width:${cur/a.g*100}%"></i></div>`}</div><em>${a.unit?fmtMin(cur)+" / "+fmtMin(a.g):cur+" / "+a.g}</em></div>`;}).join("")}</div>
+    <h2>Logros</h2><div class="achs">${ACHS.map(a=>{const cur=Math.min(a.v(st),a.g),done=cur>=a.g;return`<div class="ach ${done?"done":""}"><div class="medal">${done?"★":Math.floor(cur/a.g*100)+"%"}</div><div><b>${a.n}</b><small>${a.d}</small>${done?"":`<div class="prog"><i style="width:${cur/a.g*100}%"></i></div>`}</div><em>${a.unit?fmtMin(cur)+" / "+fmtMin(a.g):cur+" / "+a.g}${FREE?"":`<span class="achcoin${done?" got":""}" title="${done?"Ya ganaste":"Ganas"} ${ACH_COINS} monedas">${done?"✓ ":"+"}${coinTag(ACH_COINS)}</span>`}</em></div>`;}).join("")}</div>
     <p class="hint">Si pasan 2 días sin estudiar, se junta polvo en tu habitación; a los 4 días aparecen telarañas. Con una racha de 3 días o más, tu cuarto brilla.${st.since>=2?` Ahora mismo llevas ${st.since} días sin estudiar.`:""}</p>`;
   requestAnimationFrame(()=>{const hw=v.querySelector(".heatwrap");if(hw)hw.scrollLeft=hw.scrollWidth;});}
 
@@ -2495,8 +2473,7 @@ function renderSet(){const v=document.getElementById("view-set"),f=S.fig;
     <div class="setrow"><span>Descanso corto<small>Después de cada sesión</small></span><span><input type="number" id="setBrk" min="1" max="30" value="${S.brk}"> min</span></div>
     <div class="setrow"><span>Descanso largo<small>Cada cierto número de sesiones</small></span><span><input type="number" id="setLbrk" min="5" max="60" value="${S.lbrk}"> min</span></div>
     <div class="setrow"><span>Descanso largo cada<small>Número de sesiones seguidas</small></span><span><input type="number" id="setEvery" min="2" max="8" value="${S.every}"></span></div>
-    <div class="setrow"><span>Descansos automáticos<small>Al terminar una sesión empieza el descanso solo</small></span>${sw("swAuto",S.autoBreak)}</div>
-    <div class="setrow"><span>Modo estricto<small>Si sales de la app más de 10 segundos durante una sesión, la pierdes. Bloquear la pantalla también cuenta como salir.</small></span>${sw("swStrict",S.strict)}</div></div>
+    <div class="setrow"><span>Descansos automáticos<small>Al terminar una sesión empieza el descanso solo</small></span>${sw("swAuto",S.autoBreak)}</div></div>
     <h2>Materias</h2><div class="tagedit">${S.tags.map((t,i)=>`<span>${escapeHtml(t)}${S.tags.length>1?`<button data-deltag="${i}" aria-label="Borrar ${escapeHtml(t)}">×</button>`:""}</span>`).join("")}</div>
     <div class="custom" style="margin-top:10px"><input type="text" id="newTag" maxlength="24" placeholder="Nueva materia"><button class="btn sm" id="addTag">Agregar</button></div>
     <h2>Tu minifigura</h2><div class="set"><div class="setrow" style="display:block"><span class="lbl">Camisa</span>${dots("shirt",FIGC.shirt)}</div>
@@ -2519,7 +2496,7 @@ function renderSet(){const v=document.getElementById("view-set"),f=S.fig;
   const ni=document.getElementById("nickSet");ni.onchange=()=>saveNick(ni.value);
   num("setBrk","brk",1,30);num("setLbrk","lbrk",5,60);num("setEvery","every",2,8);
   const tog=(id,fn)=>{document.getElementById(id).onclick=e=>{const on=e.currentTarget.getAttribute("aria-checked")!=="true";e.currentTarget.setAttribute("aria-checked",on);fn(on);save();};};
-  tog("swAuto",on=>S.autoBreak=on);tog("swStrict",on=>S.strict=on);tog("swBata",on=>S.fig.bata=on);tog("swGafas",on=>S.fig.gafas=on);
+  tog("swAuto",on=>S.autoBreak=on);tog("swBata",on=>S.fig.bata=on);tog("swGafas",on=>S.fig.gafas=on);
   v.querySelectorAll("[data-pelo]").forEach(b=>b.onclick=()=>{S.fig.pelo=+b.dataset.pelo;save();renderSet();});
   v.querySelectorAll("[data-fig]").forEach(b=>b.onclick=()=>{S.fig[b.dataset.fig]=b.dataset.c;save();renderSet();});
   v.querySelectorAll("[data-deltag]").forEach(b=>b.onclick=()=>{const t=S.tags.splice(+b.dataset.deltag,1)[0];if(S.tag===t)S.tag=S.tags[0];save();renderSet();renderChips();});
