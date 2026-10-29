@@ -276,7 +276,7 @@ body.focusing .focus-hud{display:flex}
 <script>
 // Design mode: everything is free while we try things out. Set to false to turn the coin economy back on.
 const FREE = false;
-const WIN_COINS = 10, LOSE_COINS = 5;
+const WIN_COINS = 10, LOSE_COINS = 5, ACH_COINS = 10;
 const WALL_H = 3.2;
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -295,10 +295,15 @@ const depthKey=a=>Array.isArray(a)?a[0]+a[3]/2+a[1]+a[4]/2:((a.L||a.R)[0]+(a.L||
 const byDepth=list=>list.sort((p,q)=>depthKey(p)-depthKey(q));
 // a soft round pet bed: a flat base, a ring of plump cushions (no outlines, so they melt into one puffy rim) and a cushion inside
 const BED_TOP=.1;
-// a blanket hanging over the edge of a bed: n panels whose hems alternate in length (soft folds) with a lighter hem band.
-// side drapes run along y at x..x+w, foot drapes run along x at y..y+w; top z is the blanket's top
-function drapeY(x,w,y0,y1,zt,zb,n=5,c="$L",hc="$M"){const o=[],s=(y1-y0)/n;for(let i=0;i<n;i++){const b=zb+(i%2?.035:0);o.push([x,y0+i*s,b+.025,w,s,zt-b-.025,c,"n"],[x,y0+i*s,b,w,s,.025,hc,"n"]);}return o;}
-function drapeX(y,w,x0,x1,zt,zb,n=4,c="$L",hc="$M"){const o=[],s=(x1-x0)/n;for(let i=0;i<n;i++){const b=zb+(i%2?.035:0);o.push([x0+i*s,y,b+.025,s,w,zt-b-.025,c,"n"],[x0+i*s,y,b,s,w,.025,hc,"n"]);}return o;}
+// a soft pillow lying on a mattress at height z: a cushion part (puffed, rounded top) centred at cx,cy;
+// len + r*.8 = half its length along x, r = half its depth along y, about 2*rz tall
+function pillow(cx,cy,z,len,r,rz,c="#E6EAF2"){const L=len+r*.8;return[[cx-L,cy-r,z,2*L,2*r,rz*1.9,c,"nk"]];}
+// the sheet folded back over the blanket at the head end: a soft white roll lying on the blanket's top (x0..x1 at y0)
+function quilt(x0,y0,x1,y1,top){return[Object.assign(ROD(x0+.02,y0+.035,top+.034,x1-.02,y0+.035,top+.034,.034,"#F4F2EC"),{o:1})];}
+// the blanket hanging over the edge of a bed, as one smooth panel. side drapes run along y at x..x+w, foot drapes
+// along x at y..y+w; zt is the blanket's top and zb where the panel ends (n is ignored, kept so existing calls work)
+function drapeY(x,w,y0,y1,zt,zb,n,c="$L"){return[[x,y0,zb,w,y1-y0,zt-zb,c,"n"]];}
+function drapeX(y,w,x0,x1,zt,zb,n,c="$L"){return[[x0,y,zb,x1-x0,w,zt-zb,c,"n"]];}
 // a little heap of kibble in a bowl: round pieces in two browns, piled higher in the middle
 function kibble(){const R=rng(131),o=[];
   for(let i=0;i<26;i++){const a=R()*Math.PI*2,r=Math.sqrt(R())*.16;o.push(SPH(.5+Math.cos(a)*r,.5+Math.sin(a)*r,.12+(1-r/.16)*.045+R()*.01,.022,R()<.5?"#9A5A2A":"#B8743A","",.015));}
@@ -331,7 +336,7 @@ const CATALOG = {
     vars:[{n:"Azul"},{n:"Roja",tok:{L:"#C8342B",M:"#E0564C"}},{n:"Verde",tok:{L:"#3E8F5A",M:"#5BAE76"}},{n:"Gris",tok:{L:"#6B7078",M:"#8C929B"}},{n:"Rosa",tok:{L:"#E07AA0",M:"#F09ABA"}},{n:"Mostaza",tok:{L:"#D9A12E",M:"#EDBB4E"}},{n:"Blanca",tok:{L:"#F2F0EA",M:"#FFFFFF",W:"#ECEAE4",H:"#D6D3CB"}}],
     parts:[[0,0,0,.1,.1,.1,"#3A2416","n"],[.9,0,0,.1,.1,.1,"#3A2416","n"],[0,1.9,0,.1,.1,.1,"#3A2416","n"],[.9,1.9,0,.1,.1,.1,"#3A2416","n"],
       [.04,0,.1,.92,2,.3,"$W","n"],[0,0,.1,1,.12,1.05,"$H"],[0,1.9,.1,1,.1,.5,"$H"],
-      [.05,.12,.4,.9,1.75,.2,"#F4F4F4","n"],[.15,.17,.6,.7,.38,.13,"#E6EAF2","n"],[.03,.72,.6,.94,1.15,.06,"$L","n"],[.03,.72,.66,.94,.14,.03,"$M","n"],
+      [.05,.12,.4,.9,1.75,.2,"#F4F4F4","n"],...pillow(.5,.36,.6,.2,.18,.068),[.03,.72,.6,.94,1.15,.06,"$L","nk"],...quilt(.03,.72,.97,1.87,.66,1,{l:1,r:1,f:1}),
       ...drapeY(0,.03,.72,1.87,.66,.24),...drapeY(.97,.03,.72,1.87,.66,.24),...drapeX(1.87,.03,.03,.97,.66,.36)]},
   mesita:{name:"Mesita de noche",cat:"camas",w:1,d:1,price:25,surface:.55,tok:{W:"#A87240",K:"#8A5A36"},
     vars:[{n:"Roble"},{n:"Nogal",tok:{W:"#6B4426",K:"#4E3019"}},{n:"Blanca",tok:{W:"#ECEAE4",K:"#D6D3CB"}},{n:"Negra",tok:{W:"#3A3D48",K:"#2B2F3A"}}],
@@ -449,22 +454,22 @@ const CATALOG = {
     vars:[{n:"Azul"},{n:"Roja",tok:{L:"#C8342B",M:"#E0564C"}},{n:"Verde",tok:{L:"#3E8F5A",M:"#5BAE76"}},{n:"Gris",tok:{L:"#6B7078",M:"#8C929B"}},{n:"Blanca y nogal",tok:{L:"#F2F0EA",M:"#FFFFFF",W:"#4E3019",H:"#3A2416",P:"#C9B79A"}}],
     parts:[[0,0,0,.12,.12,.1,"#3A2416","n"],[1.88,0,0,.12,.12,.1,"#3A2416","n"],[0,1.88,0,.12,.12,.1,"#3A2416","n"],[1.88,1.88,0,.12,.12,.1,"#3A2416","n"],
       [.04,0,.1,1.92,1.95,.3,"$W","n"],[0,0,.1,2,.14,1.15,"$H","n"],[.1,.14,.45,1.8,.03,.7,"$P","n"],
-      [.06,.17,.4,1.88,1.77,.2,"#F4F4F4","n"],[.18,.22,.6,.75,.34,.14,"#E6EAF2","n"],[1.07,.22,.6,.75,.34,.14,"#E6EAF2","n"],
-      [.04,.7,.6,1.92,1.25,.07,"$L","n"],[.04,.7,.67,1.92,.14,.03,"$M","n"],
+      [.06,.17,.4,1.88,1.77,.2,"#F4F4F4","n"],...pillow(.555,.39,.6,.2,.165,.068),...pillow(1.445,.39,.6,.2,.165,.068),
+      [.04,.7,.6,1.92,1.25,.07,"$L","nk"],...quilt(.04,.7,1.96,1.95,.67,2,{l:1,r:1,f:1}),
       ...drapeY(.01,.03,.7,1.95,.67,.22,6),...drapeY(1.96,.03,.7,1.95,.67,.22,6),...drapeX(1.95,.03,.04,1.96,.67,.22,6)]},
   litera:{name:"Litera",cat:"camas",w:1,d:2,price:85,bed:{dx:0,dz:-.14},tok:{L:"#3A6FD8",M:"#C8342B",W:"#C98A4B"},
     vars:[{n:"Roble"},{n:"Blanca",tok:{W:"#ECEAE4",L:"#5B8BEA",M:"#F2B705"}},{n:"Negra",tok:{W:"#2B2F3A",L:"#3E8F5A",M:"#9AA0AD"}}],
     parts:[[0,0,0,.08,.08,2.05,"$W","n"],[.92,0,0,.08,.08,2.05,"$W","n"],[0,1.92,0,.08,.08,2.05,"$W","n"],[.92,1.92,0,.08,.08,2.05,"$W","n"],
-      [.04,.08,.15,.92,1.84,.15,"$W","n"],[.07,.12,.3,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,.46,.66,.34,.12,"#E6EAF2","n"],[.04,.7,.46,.92,1.18,.05,"$L","n"],
+      [.04,.08,.15,.92,1.84,.15,"$W","n"],[.07,.12,.3,.86,1.76,.16,"#F4F4F4","n"],...pillow(.48,.33,.46,.18,.155,.058),[.04,.7,.46,.92,1.18,.05,"$L","nk"],...quilt(.04,.7,.96,1.88,.51,3,{l:1,r:1}),
       ...drapeY(.01,.03,.7,1.88,.51,.24,5,"$L","$L"),...drapeY(.96,.03,.7,1.88,.51,.24,5,"$L","$L"),
-      [.04,.08,1.2,.92,1.84,.14,"$W","n"],[.07,.12,1.34,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,1.5,.66,.34,.12,"#E6EAF2","n"],[.04,.7,1.5,.88,1.18,.05,"$M","n"],
+      [.04,.08,1.2,.92,1.84,.14,"$W","n"],[.07,.12,1.34,.86,1.76,.16,"#F4F4F4","n"],...pillow(.48,.33,1.5,.18,.155,.058),[.04,.7,1.5,.88,1.18,.05,"$M","nk"],...quilt(.04,.7,.92,1.88,1.55,4,{l:1},"$M"),
       ...drapeY(.01,.03,.7,1.88,1.55,1.3,5,"$M","$M"),
       [.92,.08,1.5,.08,1.2,.16,"$W","n"],
       [.2,1.94,0,.06,.06,1.65,"$W","n"],[.7,1.94,0,.06,.06,1.65,"$W","n"],[.26,1.95,.38,.44,.04,.04,"$W","n"],[.26,1.95,.72,.44,.04,.04,"$W","n"],[.26,1.95,1.06,.44,.04,.04,"$W","n"],[.26,1.95,1.4,.44,.04,.04,"$W","n"]]},
   camaFuton:{name:"Cama japonesa",cat:"camas",w:2,d:2,price:75,bed:{dx:.05,dz:-.28},tok:{L:"#2E4A3A",M:"#4E7A5A",W:"#B88A5A"},
     vars:[{n:"Verde"},{n:"Gris",tok:{L:"#4A4F58",M:"#6B7078"}},{n:"Arena",tok:{L:"#C9B79A",M:"#E0D2BA"}},{n:"Índigo",tok:{L:"#2B3A6B",M:"#3E5290",W:"#5A3A22"}}],
-    parts:[[0,0,0,2,2,.14,"$W","n"],[0,0,.14,2,.08,.55,"$W","n"],[.1,.12,.14,1.8,1.78,.18,"#F4F2EC","n"],[.25,.18,.32,.6,.3,.1,"#E6EAF2","n"],[1.15,.18,.32,.6,.3,.1,"#E6EAF2","n"],
-      [.08,.6,.32,1.84,1.3,.06,"$L","n"],[.08,.6,.38,1.84,.12,.02,"$M","n"],
+    parts:[[0,0,0,2,2,.14,"$W","n"],[0,0,.14,2,.08,.55,"$W","n"],[.1,.12,.14,1.8,1.78,.18,"#F4F2EC","n"],...pillow(.55,.33,.32,.17,.145,.052),...pillow(1.45,.33,.32,.17,.145,.052),
+      [.08,.6,.32,1.84,1.3,.06,"$L","nk"],...quilt(.08,.6,1.92,1.9,.38,5,{l:1,r:1,f:1}),
       ...drapeY(.05,.03,.6,1.9,.38,.15,6),...drapeY(1.92,.03,.6,1.9,.38,.15,6),...drapeX(1.9,.03,.08,1.92,.38,.15,6)]},
   // ---- desks & chairs ----
   escritorioGamer:{name:"Escritorio gamer",cat:"escritorio",w:2,d:1,price:120,surface:.78,desk:{seat:.6,chair:"#1C1C22",accent:"#C8342B"},
@@ -859,8 +864,8 @@ const PHRASES=["Un pomodoro a la vez. Así se construyen las grandes cosas.","El
 // ================= state =================
 function newRoom(name,size){return{name,size,placed:[],walls:[],floorStyle:"lego",floorColor:"#C9965B",wallStyle:"lego",wallColor:"#EAD9BC"};}
 function freshState(){const r=newRoom("Dormitorio",8);
-  r.placed=[{uid:1,id:"cama",x:1,y:0,r:0},{uid:2,id:"planta",x:0,y:0,r:0},{uid:3,id:"alfombra",x:3,y:3,r:0},{uid:5,id:"escritorio",x:5,y:4,r:1}];r.walls=[{uid:4,id:"reloj",wall:"back",s:2.3,z:1.95}];
-  return{v:5,coins:20,inv:{},rooms:[r],cur:0,nextUid:6,light:"auto",weather:"auto",sound:{type:"off",vol:.5},ownedStyles:["floor:lego","wall:lego"],
+  r.placed=[{uid:5,id:"escritorio",x:5,y:4,r:1}];r.walls=[];
+  return{v:5,coins:300,achPaid:[],inv:{},rooms:[r],cur:0,nextUid:6,light:"auto",weather:"auto",sound:{type:"off",vol:.5},ownedStyles:["floor:lego","wall:lego"],
     econ:true,stats:{sessions:0,minutes:0,fails:0},log:[],tags:["General","Neuro","Farmacología","Idiomas"],tag:"General",dur:25,brk:5,lbrk:15,every:4,autoBreak:true,strict:true,cycle:0,
     fig:{shirt:"#C8342B",pants:"#2B3A55",hair:"#3A2416",skin:"#F7D117",bata:false},nick:"",myCode:null,session:null,test:false,gift1:true,bedGift:true};}
 function migrate(s){
@@ -932,7 +937,7 @@ function faces(P,b){const {x,y,z,w,d,h}=b,t=z+h;return{
 function sheen(c,pts,pA,pB,a0,a1){const g=c.createLinearGradient(pA[0],pA[1],pB[0],pB[1]);g.addColorStop(0,`rgba(255,255,255,${a0})`);g.addColorStop(.5,"rgba(255,255,255,0)");g.addColorStop(1,`rgba(255,255,255,${a1})`);poly(c,pts,g,false);}
 function edge(c,a,b2,style,wd){c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b2[0],b2[1]);c.strokeStyle=style;c.lineWidth=wd;c.stroke();}
 function drawBox(c,P,b,L){if(b.kids){for(const k of b.kids)drawBox(c,P,k,L);return;}if(b.mesh)return drawMesh(c,P,b,L);
-  if(b.lf)return drawLeaf(c,P,b,L);if(b.rd)return drawRod(c,P,b,L);if(b.sph)return drawSph(c,P,b,L);if(b.fxOnly)return drawFx(c,P,b);
+  if(b.lf)return drawLeaf(c,P,b,L);if(b.rd)return drawRod(c,P,b,L);if(b.sph)return drawSph(c,P,b,L);if(b.cushion)return drawCushion(c,P,b,L);if(b.fxOnly)return drawFx(c,P,b);
   if(b.cyl)return drawCyl(c,P,b,L);
   const f=faces(P,b),{x,y,z,w,d,h}=b,t=z+h,big=w>.05&&d>.05&&h>.05,px=Math.min(w,d)*P.tw;
   if(b.e){c.save();c.shadowColor=b.c;c.shadowBlur=P.tw*.7;
@@ -981,6 +986,21 @@ function drawSph(c,P,b,L){const cx=b.x+b.w/2,cy=b.y+b.d/2,R=Math.max(b.w,b.d)/2,
   if(b.fx){c.save();c.clip();sphFx(c,P,b,sx,b.dome?sy-ry*.5:sy,rx,b.dome?ry*.5:ry);c.restore();}
   if(!b.noOut){c.strokeStyle="rgba(10,12,25,.26)";c.lineWidth=.7;c.stroke();}
   if(!b.e&&rx>3){c.fillStyle="rgba(255,255,255,.32)";c.beginPath();c.ellipse(hxp,hyp,rx*.2,ry*.1,-.5,0,7);c.fill();}}
+// cushion: a box whose top is puffed up — rounded corners, edges bowed outward over the sides, and a soft light that
+// brightens towards the middle — for pillows and blankets
+function drawCushion(c,P,b,L){const f=faces(P,b),{x,y,z,w,d,h}=b,t=z+h,col=(fc,X,Y,Z,m)=>css(lit(b.c,fc,X,Y,Z,L),m);
+  gface(c,f.left,col("left",x+w/2,y+d,t,1),pt(P,x+w/2,y+d,t),col("left",x+w/2,y+d,z,.7),pt(P,x+w/2,y+d,z));
+  gface(c,f.right,col("right",x+w,y+d/2,t,1.03),pt(P,x+w,y+d/2,t),col("right",x+w,y+d/2,z,.72),pt(P,x+w,y+d/2,z));
+  // corners rounded with a fixed radius (so big blankets stay rectangles), edges bowed out a little
+  const q=f.top,cx=(q[0][0]+q[2][0])/2,cy=(q[0][1]+q[2][1])/2,rw=Math.min(.1,.3*Math.min(w,d)),len=[w,d,w,d],
+    along=(i,j,t)=>[q[i][0]+(q[j][0]-q[i][0])*t,q[i][1]+(q[j][1]-q[i][1])*t];
+  c.beginPath();c.moveTo(...along(0,1,rw/w));
+  for(let i=1;i<=4;i++){const p=i%4,pv=(i+3)%4,nx=(i+1)%4,a=along(p,pv,rw/len[pv]),b2=along(p,nx,rw/len[p]),
+      s=along(pv,p,rw/len[pv]),m=[(s[0]+a[0])/2,(s[1]+a[1])/2];
+    c.quadraticCurveTo(m[0]+(m[0]-cx)*.05,m[1]+(m[1]-cy)*.08,a[0],a[1]);c.quadraticCurveTo(q[p][0],q[p][1],b2[0],b2[1]);}c.closePath();
+  const rr=Math.hypot(q[2][0]-q[0][0],q[2][1]-q[0][1])*.55,g=c.createRadialGradient(cx-rr*.15,cy-rr*.2,0,cx,cy,rr);
+  g.addColorStop(0,col("top",x+w/2,y+d/2,t,1.14));g.addColorStop(.65,col("top",x+w/2,y+d/2,t,1.0));g.addColorStop(1,col("top",x+w/2,y+d/2,t,.86));
+  c.fillStyle=g;c.fill();c.strokeStyle="rgba(10,12,25,.22)";c.lineWidth=.7;c.stroke();}
 // leaf: a pointed blade from base to tip, bowed by `arch` (world z at its middle), shaded darker at the base, with a folded half and veins
 function drawLeaf(c,P,b,L){const f=b.lf,[A,B]=endPts(P,b,f),pa=pt(P,...A),pb=pt(P,...B),M=pt(P,(A[0]+B[0])/2,(A[1]+B[1])/2,(A[2]+B[2])/2+f.dr);
   const vx=pb[0]-pa[0],vy=pb[1]-pa[1],len=Math.hypot(vx,vy)||1,nx=-vy/len,ny=vx/len,wd=f.wd*P.tw*.5;if(len+wd<.6)return;
@@ -1152,7 +1172,7 @@ function parsePart(a,tok){const col=c=>c&&c[0]==="$"?(tok&&tok[c.slice(1)])||"#F
   let fx=a[8];if(fx&&fx.includes("$"))fx=fx.replace(/\$([A-Z])/g,(m,k)=>(tok&&tok[k])||"#FFFFFF");
   const sph=f.includes("s"),dome=f.includes("d");
   return{x:a[0],y:a[1],z:a[2],w:a[3],d:a[4],h:a[5],c,stud:!f.includes("n")&&!f.includes("c")&&!sph&&!dome,e:f.includes("e"),cyl:f.includes("c"),
-    sph:sph||dome,dome,noOut:f.includes("o"),fxOnly:f.includes("x"),t:t?parseFloat(t[1]):1,fx};}
+    sph:sph||dome,dome,cushion:f.includes("k"),noOut:f.includes("o"),fxOnly:f.includes("x"),t:t?parseFloat(t[1]):1,fx};}
 const varOf=(def,v)=>(def.vars||[])[v||0]||{};
 const rotF=f=>f&&{...f,a:[1-f.a[1],f.a[0],f.a[2]],b:[1-f.b[1],f.b[0],f.b[2]]};
 function rotParts(ps,W,D,r){for(let i=0;i<(r||0);i++){ps=ps.map(b=>({...b,x:D-b.y-b.d,y:b.x,w:b.d,d:b.w,lf:rotF(b.lf),rd:rotF(b.rd)}));[W,D]=[D,W];}return ps;}
@@ -1166,7 +1186,7 @@ const PCACHE=new Map();
 const cloneP=b=>({...b,lf:b.lf&&{...b.lf,a:[...b.lf.a],b:[...b.lf.b]},rd:b.rd&&{...b.rd,a:[...b.rd.a],b:[...b.rd.b]}});
 function partCache(def,id,v,r){const k=id+"|"+(v||0)+"|"+(r||0);let e=PCACHE.get(k);
   if(!e){const local=localParts(id,v),rot=rotParts(local,def.w,def.d,r),idx=new Map(rot.map((b,i)=>[b,i])),order=def.rig?rot.map((_,i)=>i):def.soft?rot.map((b,i)=>[b.x+b.w/2+b.y+b.d/2+.3*(b.z+b.h/2),i]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]):sortBoxes(rot).map(b=>idx.get(b));
-    e={local,order,sorted:order.map(i=>rot[i]),group:!!def.rig||rot.length>=10&&!def.pet&&!def.surface&&!def.desk&&!def.bed};PCACHE.set(k,e);}
+    e={local,order,sorted:order.map(i=>rot[i]),group:!!def.rig||rot.length>=10&&!def.pet&&!def.surface&&!def.desk};PCACHE.set(k,e);}
   return e;}
 function itemBoxes(p,t){const def=CATALOG[p.id],e=partCache(def,p.id,p.v,p.r),z=p.z||0;let ps;
   if(def.anim&&t!==undefined&&!REDUCED){const loc=e.local.map(cloneP);def.anim(loc,t,p);const rot=rotParts(loc,def.w,def.d,p.r);ps=e.order.map(i=>rot[i]);}
@@ -2114,10 +2134,10 @@ function setFocusing(on){if(on===FOCUSING)return;FOCUSING=on;document.body.class
 hudBtn.onclick=async()=>{await startBtn.onclick();tick();};
 function finishFocus(){const ses=S.session,m=ses.dur,c=reward(m);S.session=null;S.coins+=FREE?0:c;S.stats.sessions++;S.stats.minutes+=m;S.log.push({t:Date.now(),m,tag:ses.tag||"General"});
   if(S.log.length>5000)S.log=S.log.slice(-5000);S.cycle=(S.cycle||0)+1;save();try{wake?.release();}catch(e){}chime();
-  const before=new Set(achDone());STATS=computeStats();const newA=ACHS.filter(a=>achieved(a)&&!before.has(a.id));
+  STATS=computeStats();const newA=payAchievements();
   const longB=S.cycle%S.every===0;if(S.autoBreak)startSession(longB?"long":"short");refresh();renderChips();tick();
   modal(`<h3>¡Sesión completa!</h3><p>${fmtMin(m)} de ${escapeHtml(ses.tag||"General")}</p>${FREE?"":`<div class="big"><span class="coin" style="width:36px;height:36px"></span>+${c}</div>`}
-    <p class="quote">${PHRASES[Math.floor(Math.random()*PHRASES.length)]}</p>${newA.map(a=>`<p><b>Logro desbloqueado:</b> ${a.n}</p>`).join("")}
+    <p class="quote">${PHRASES[Math.floor(Math.random()*PHRASES.length)]}</p>${newA.map(a=>`<p><b>Logro desbloqueado:</b> ${a.n}${FREE?"":` · ${coinTag(ACH_COINS)}`}</p>`).join("")}
     ${S.autoBreak?`<p>Empieza tu ${longB?"descanso largo":"descanso"} de ${longB?S.lbrk:S.brk} minutos.</p>`:""}<button class="btn" data-g="x">Seguir</button><button class="btn ghost" data-g="prog">Ver mi progreso</button>`);}
 function finishBreak(){S.session=null;save();chime();renderChips();tick();toast("Descanso terminado. ¡A por la siguiente sesión!");}
 function chime(){if(!audio)return;try{[0,.18,.36].forEach((t,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=[660,880,1320][i];
@@ -2167,6 +2187,9 @@ const ACHS=[{id:"s1",n:"Primera sesión",d:"Completa tu primer pomodoro",g:1,v:s
   {id:"m60",n:"Maratón",d:"Completa una sesión de 60 minutos o más",g:60,v:s=>s.maxSession,unit:"min"},{id:"early",n:"Madrugador",d:"Empieza una sesión antes de las 7 a. m.",g:1,v:s=>s.early},{id:"late",n:"Búho nocturno",d:"Termina una sesión después de las 11 p. m.",g:1,v:s=>s.late}];
 const achieved=a=>a.v(STATS)>=a.g;
 const achDone=()=>ACHS.filter(achieved).map(a=>a.id);
+// every achievement pays ACH_COINS once; returns the ones paid now
+function payAchievements(){S.achPaid=S.achPaid||[];const fresh=ACHS.filter(a=>achieved(a)&&!S.achPaid.includes(a.id));
+  if(fresh.length){S.achPaid.push(...fresh.map(a=>a.id));if(!FREE)S.coins+=ACH_COINS*fresh.length;save();}return fresh;}
 function renderProg(){const st=STATS=computeStats(),v=document.getElementById("view-prog");
   const today=new Date();today.setHours(12,0,0,0);
   const start=new Date(today);start.setDate(start.getDate()-start.getDay()-7*15);let cells="";
@@ -2412,6 +2435,7 @@ const onResize=()=>{if((P&&scroller.clientWidth===P.ox*2/ZOOM)||relayout)return;
 if(window.ResizeObserver)new ResizeObserver(onResize).observe(scroller);else window.addEventListener("resize",onResize);
 document.getElementById("roomBtn").onclick=()=>roomPanel();
 renderRoomSel();renderChips();refresh();layout();tick();initOnline();
+{const paid=payAchievements();if(paid.length&&!FREE){refresh();toast(`Tus logros te dan ${paid.length*ACH_COINS} monedas`);}}
 setInterval(tick,250);setInterval(()=>{STATS=computeStats();},60000);
 requestAnimationFrame(loop);
 document.fonts?.ready.then(()=>{STATIC.key="";});
