@@ -542,11 +542,10 @@ const CATALOG = {
     vars:[{n:"Gris"},{n:"Azul",tok:{A:"#2F5FA8",M:"#4A72B8"}},{n:"Blanca",tok:{A:"#D9DCE2",M:"#F4F4F4"}}],
     parts:[[.24,.24,0,.52,.52,.05,"#2B2F3A","cn"],[.46,.46,.05,.08,.08,.32,"#9AA0AD","cn"],[.2,.26,.37,.6,.56,.1,"$A","n"],
       [.22,.18,.5,.56,.06,.62,"#2B2F3A","n"],[.26,.24,.54,.48,.005,.52,"$M","n"],[.13,.48,.47,.04,.04,.13,"#2B2F3A","n"],[.83,.48,.47,.04,.04,.13,"#2B2F3A","n"],[.12,.36,.6,.06,.3,.04,"#2B2F3A","n"],[.82,.36,.6,.06,.3,.04,"#2B2F3A","n"]]},
-  // pouf in the minifigure's block style: a padded cube with a piping band, a lighter cushion top, cross stitching and a button
-  puf:{name:"Puf",cat:"escritorio",w:1,d:1,price:25,tok:{C:"#D9A12E",D:"#B07E1C",E:"#E8B84A"},
-    vars:[{n:"Mostaza"},{n:"Gris",tok:{C:"#6B7078",D:"#4E535B",E:"#828891"}},{n:"Rosa",tok:{C:"#E09AAE",D:"#C27288",E:"#EBB2C2"}},{n:"Verde",tok:{C:"#5BAE76",D:"#3F8A57",E:"#74C08D"}},{n:"Azul",tok:{C:"#3E6FB0",D:"#2C5590",E:"#5A88C6"}}],
-    parts:[[.21,.21,0,.58,.58,.04,"$D","n"],[.17,.17,.04,.66,.66,.17,"$C","n"],[.16,.16,.21,.68,.68,.03,"$D","n"],[.17,.17,.24,.66,.66,.15,"$C","n"],
-      [.19,.19,.39,.62,.62,.07,"$E","n"],[.21,.495,.46,.58,.01,.004,"$D","n"],[.495,.21,.46,.01,.58,.004,"$D","n"],[.47,.47,.464,.06,.06,.016,"$D","n"]]},
+  // a chunky-knit round pouf (drawn by drawPouf)
+  puf:{name:"Puf",cat:"escritorio",w:1,d:1,price:25,tok:{C:"#E6DCCB"},
+    vars:[{n:"Crema"},{n:"Gris",tok:{C:"#A2A6AC"}},{n:"Mostaza",tok:{C:"#D3A13C"}},{n:"Rosa palo",tok:{C:"#DDAFB0"}},{n:"Salvia",tok:{C:"#9EB59B"}},{n:"Azul",tok:{C:"#5F82AA"}}],
+    parts:[[.17,.17,0,.66,.66,.4,"$C","c","knit"]]},
   // ---- lamps ----
   lamparaArco:{name:"Lámpara de arco",cat:"lamparas",w:1,d:1,price:45,tok:{S:"#F4F7FF"},light:{dz:1.05,c:[1,.85,.65],i:2,pool:2.8,col:"255,215,160",pa:.38,off:[.5,1.16]},
     vars:[{n:"Blanca"},{n:"Dorada",tok:{S:"#E3B219"},lc:[1,.75,.4],col:"255,190,100"},{n:"Negra",tok:{S:"#3A3D48"},lc:[1,.8,.6],col:"255,200,140"}],
@@ -1012,7 +1011,7 @@ function drawBox(c,P,b,L){if(b.kids){for(const k of b.kids)drawBox(c,P,k,L);retu
     edge(c,f.left[0],f.left[1],"rgba(0,0,10,.35)",1);edge(c,f.right[0],f.right[1],"rgba(0,0,10,.35)",1);}
   else{c.beginPath();c.moveTo(...f.top[1]);c.lineTo(...f.top[2]);c.lineTo(...f.top[3]);c.strokeStyle="rgba(255,255,255,.3)";c.lineWidth=.8;c.stroke();}
   if(b.fx)drawFx(c,P,b);}
-function drawCyl(c,P,b,L){const cx=b.x+b.w/2,cy=b.y+b.d/2,R=b.w/2,Rt=R*(b.t||1);
+function drawCyl(c,P,b,L){if(b.fx==="knit")return drawPouf(c,P,b,L);const cx=b.x+b.w/2,cy=b.y+b.d/2,R=b.w/2,Rt=R*(b.t||1);
   const [bx,by]=pt(P,cx,cy,b.z),[tx,ty]=pt(P,cx,cy,b.z+b.h),k=.707,rx=R*P.tw*k,ry=R*P.th*k,rxt=Rt*P.tw*k,ryt=Rt*P.th*k;
   let cl,cr,ct;
   if(b.e){cl=hx(b.c).map(v=>v*.92);cr=hx(b.c);ct=lerp(hx(b.c),[1,1,1],.35);c.save();c.shadowColor=b.c;c.shadowBlur=P.tw*.8;}
@@ -1026,6 +1025,48 @@ function drawCyl(c,P,b,L){const cx=b.x+b.w/2,cy=b.y+b.d/2,R=b.w/2,Rt=R*(b.t||1);
     if(rxt>2){const gt=c.createLinearGradient(tx-rxt,ty-ryt,tx+rxt,ty+ryt);gt.addColorStop(0,"rgba(255,255,255,.3)");gt.addColorStop(.5,"rgba(255,255,255,0)");gt.addColorStop(1,"rgba(255,255,255,.1)");c.fillStyle=gt;c.fill();}
     c.beginPath();c.ellipse(tx,ty,rxt,ryt,0,.15,Math.PI-.15);c.strokeStyle="rgba(255,255,255,.45)";c.lineWidth=1.1;c.stroke();}
   if(b.e)c.restore();if(b.fx)drawFx(c,P,b);}
+// Chunky-knit pouf: a soft solid of revolution (slightly bulging, tucked at the floor, rounded over the top) built from
+// stacked horizontal discs, matte fabric shading, then fat V stitches round the side and stitch rows out from a gathered
+// middle on top. The silhouette is the same from every side, so it turns with the room for free.
+function drawPouf(c,P,b,L){const cx=b.x+b.w/2,cy=b.y+b.d/2,Rm=b.w/2,H=b.h,e=Math.min(.1,H*.28),k=.707;
+  const rad=z=>{const u=z/H,bulge=Rm*(.95+.05*Math.sin(Math.PI*Math.min(1,u*1.1)))-(z<.04?(.04-z)*.9:0);
+    if(z<=H-e)return bulge;const q=z-(H-e);return bulge-e+Math.sqrt(Math.max(0,e*e-q*q));};
+  const cl=lit(b.c,"left",cx,cy+Rm,b.z+H/2,L),cr=lit(b.c,"right",cx+Rm,cy,b.z+H/2,L),ct=lit(b.c,"top",cx,cy,b.z+H,L);
+  const ring=z=>{const[sx,sy]=pt(P,cx,cy,b.z+z),r=rad(z);return[sx,sy,r*P.tw*k,r*P.th*k];};
+  // body: discs from the floor up, each lit across like matte cloth and darker towards the floor
+  const n=Math.max(10,Math.min(30,Math.round(H*P.u/2.2))),outline=[];
+  for(let i=0;i<=n;i++){const z=H*i/n,[sx,sy,rx,ry]=ring(z),m=.8+.27*Math.min(1,z/(H*.55)),g=c.createLinearGradient(sx-rx,0,sx+rx,0);
+    g.addColorStop(0,css(cl,.6*m));g.addColorStop(.3,css(cr,1.02*m));g.addColorStop(.5,css(cr,.96*m));g.addColorStop(.82,css(cl,.78*m));g.addColorStop(1,css(cl,.6*m));
+    c.fillStyle=g;c.beginPath();c.ellipse(sx,sy,rx,ry,0,0,7);c.fill();outline.push([sx,sy,rx,ry]);}
+  // soft top: lighter in the middle, falling off into the rounded edge
+  {const[sx,sy,rx,ry]=ring(H),g=c.createRadialGradient(sx-rx*.15,sy-ry*.2,0,sx,sy,rx);g.addColorStop(0,css(ct,1.04));g.addColorStop(.75,css(ct,.95));g.addColorStop(1,css(lerp(ct,cr,.5),.86));
+    c.fillStyle=g;c.beginPath();c.ellipse(sx,sy,rx,ry,0,0,7);c.fill();}
+  // the silhouette: bottom front arc, up the widest ring, round the top's back arc
+  const sil=()=>{const[bx,by,brx,bry]=ring(0),mid=outline.reduce((a,o)=>o[2]>a[2]?o:a),[tx,ty,trx,tr]=ring(H);c.beginPath();c.ellipse(bx,by,brx,bry,0,0,Math.PI);
+    c.lineTo(mid[0]-mid[2],mid[1]);c.lineTo(tx-trx,ty);c.ellipse(tx,ty,trx,tr,0,Math.PI,0,false);c.lineTo(mid[0]+mid[2],mid[1]);c.closePath();};
+  const px=Rm*P.tw;
+  if(px>=14){c.save();sil();c.clip();c.lineCap="round";
+    // side: columns of knit Vs (two thick slanted strokes each) following the bulge, narrower towards the silhouette
+    const COLS=14,rows=Math.max(3,Math.round((H-e*.3)/.075)),rz=(H-e*.3)/rows;
+    for(let i=0;i<COLS;i++){const a=(i+.5)/COLS*Math.PI*2,sa=Math.sin(a),ca=Math.cos(a);if(sa<.03)continue;const lite=.12+.2*Math.max(0,Math.cos(a-1.1));
+      for(let j=0;j<rows;j++){const z=(j+.5)*rz,[sx,sy,rx,ry]=ring(z),x=sx+rx*ca,y=sy+ry*sa,hw=rx*Math.PI/COLS*sa,hh=rz*P.u*.5;
+        for(const s of[-1,1]){const x0=x+s*hw*.78,y0=y-hh*.9,x1=x+s*hw*.1,y1=y+hh*.75;
+          c.strokeStyle="rgba(0,0,12,.19)";c.lineWidth=hw*.9;c.beginPath();c.moveTo(x0,y0+hh*.15);c.lineTo(x1,y1+hh*.15);c.stroke();
+          c.strokeStyle=`rgba(255,255,255,${lite})`;c.lineWidth=hw*.62;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();}}}
+    c.restore();}
+  c.strokeStyle="rgba(10,12,25,.28)";c.lineWidth=.8;sil();c.stroke();
+  if(px<14)return;
+  // top: knit Vs in rows running out from a gathered middle, drawn in the floor plane at the top
+  const zt=b.z+H,Rt=rad(H-e*.3);c.save();planeT(c,pt(P,cx,cy,zt),pt(P,cx+1,cy,zt),pt(P,cx,cy+1,zt));c.beginPath();c.arc(0,0,Rt,0,7);c.clip();
+  c.lineCap="round";const sp=12;
+  for(let s=0;s<sp;s++){c.save();c.rotate((s+.5)/sp*Math.PI*2);
+    for(let r=.08;r<Rt+.03;r+=.065){const w=Math.min(.06,r*Math.PI/sp);
+      for(const q of[-1,1]){const x0=r-.026,y0=q*w*.8,x1=r+.026,y1=q*w*.1;
+        c.strokeStyle="rgba(0,0,12,.17)";c.lineWidth=w*.85;c.beginPath();c.moveTo(x0+.006,y0);c.lineTo(x1+.006,y1);c.stroke();
+        c.strokeStyle="rgba(255,255,255,.2)";c.lineWidth=w*.58;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();}}
+    c.restore();}
+  const g=c.createRadialGradient(0,0,0,0,0,.1);g.addColorStop(0,"rgba(0,0,12,.45)");g.addColorStop(1,"rgba(0,0,12,0)");c.fillStyle=g;c.beginPath();c.arc(0,0,.1,0,7);c.fill();
+  c.restore();}
 const endPts=(P,b,f)=>[[b.x+f.a[0]*b.w,b.y+f.a[1]*b.d,b.z+f.a[2]*b.h],[b.x+f.b[0]*b.w,b.y+f.b[1]*b.d,b.z+f.b[2]*b.h]];
 // sphere / ellipsoid (dome = upper half): radial shading lit from the upper right, like the box faces
 function drawSph(c,P,b,L){const cx=b.x+b.w/2,cy=b.y+b.d/2,R=Math.max(b.w,b.d)/2,zc=b.dome?b.z:b.z+b.h/2,vh=b.dome?b.h:b.h/2;
@@ -1293,11 +1334,14 @@ const wPt=(x,y)=>{for(let i=0;i<VIEW;i++)[x,y]=[y,N-x];return[x,y];};
 function vRect(x,y,w,d){for(let i=0;i<VIEW;i++)[x,y,w,d]=[N-y-d,x,d,w];return{x,y,w,d};}
 function viewItem(p){if(!VIEW)return p;const f=itemFoot(p),v=vRect(p.x,p.y,f.w,f.d);return{...p,x:v.x,y:v.y,r:((p.r||0)+VIEW)%4};}
 const vItemBoxes=(p,t)=>itemBoxes(viewItem(p),t);
-// a wall span (world "back" y=0 / "left" x=0) seen in the view: which far wall it lands on and where, or null when it is a near wall
-function wallSpan(map,wall,s,w){const A=wall==="back"?map(s,0):map(0,s),B=wall==="back"?map(s+w,0):map(0,s+w),e=1e-6;
-  if(Math.abs(A[1])<e&&Math.abs(B[1])<e)return{wall:"back",s:Math.min(A[0],B[0])};
-  if(Math.abs(A[0])<e&&Math.abs(B[0])<e)return{wall:"left",s:Math.min(A[1],B[1])};return null;}
-const wallToView=(wall,s,w)=>wallSpan(vPt,wall,s,w),viewToWall=(wall,s,w)=>wallSpan(wPt,wall,s,w);
+// The room has four walls: "back" y=0, "left" x=0, "front" y=N and "right" x=N, each with s running along +x or +y.
+// Only the two far ones of the view are drawn (as view "back"/"left"); windows stay on the original back and left walls.
+const WALLPT={back:s=>[s,0],left:s=>[0,s],front:s=>[s,N],right:s=>[N,s]};
+// a wall span mapped through the view (or back): which wall it lands on and where, or null (into the view: a near wall)
+function wallSpan(map,wall,s,w,far){const A=map(...WALLPT[wall](s)),B=map(...WALLPT[wall](s+w)),e=1e-6,on=(i,v)=>Math.abs(A[i]-v)<e&&Math.abs(B[i]-v)<e;
+  if(on(1,0))return{wall:"back",s:Math.min(A[0],B[0])};if(on(0,0))return{wall:"left",s:Math.min(A[1],B[1])};if(far)return null;
+  if(on(1,N))return{wall:"front",s:Math.min(A[0],B[0])};if(on(0,N))return{wall:"right",s:Math.min(A[1],B[1])};return null;}
+const wallToView=(wall,s,w)=>wallSpan(vPt,wall,s,w,true),viewToWall=(wall,s,w)=>wallSpan(wPt,wall,s,w,false);
 function refreshViewWalls(){VWINS=WINS.map(w=>{const v=wallToView(w.wall,w.a,w.b-w.a);return v&&{...w,wall:v.wall,a:v.s,b:v.s+(w.b-w.a)};}).filter(Boolean);
   VWALLS=RM.walls.map(it=>{const v=wallToView(it.wall,it.s,WCAT[it.id].w);return v&&{...it,wall:v.wall,s:v.s};}).filter(Boolean);}
 // floor-plane drawing in world coordinates (patterns, dust, contact shadows) turned into the view
@@ -1346,37 +1390,107 @@ function buildLights(){const wc=lerp(lerp([.45,.55,1],[1,.96,.88],ENV.day),[1,.6
     ls.push({x:p.x+lx,y:p.y+ly,z:(p.z||0)+l.dz,c:va.lc||l.c,i:l.i*dim*(l.flicker&&!REDUCED?1+.14*flickerNoise(NOW*1.2,p.uid):1),pool:l.pool,col:va.col||l.col,pa:l.pa*dim});});
   RM.walls.forEach(it=>{const d=WCAT[it.id];if(!d.light||(placing&&placing.moveUid===it.uid))return;const m=it.s+d.w/2,z=it.z+d.h/2;
     const va=varOf(d,it.v),l={c:va.lc||[.8,.9,1],i:.8*dim,pool:1.7,col:va.col||"200,225,255",pa:.3*dim};
-    ls.push(it.wall==="back"?{x:m,y:.35,z,...l}:{x:.35,y:m,z,...l});});
+    const[wx,wy]=WALLPT[it.wall](m);ls.push({x:wx+(it.wall==="left"?.35:it.wall==="right"?-.35:0),y:wy+(it.wall==="back"?.35:it.wall==="front"?-.35:0),z,...l});});
   return ls.map(l=>{const[x,y]=vPt(l.x,l.y);return{...l,x,y};});}   // lights work in view space, like the boxes they light
 
 // ================= windows =================
-function drawCity(w){const R=rng(w.seed),{a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day,dusk=ENV.dusk,wx=ENV.wx;
+// Neon city (cyberpunk mood): smog sky, megatowers with antennas, an elevated highway, towers hung with vertical neon
+// signs, roof edges lined with light and a glowing street haze. drawCity paints the still part once into the backdrop
+// and leaves CITY.dyn for drawCityFx, which animates the living part every frame: flying cars, highway traffic,
+// beacons, flickering signs, hologram billboards and searchlights. Units: window-sized, y up from the street (c).
+const NEON=["#FF2E88","#00E5FF","#FCEE0A","#B14CFF","#FF6B2E","#3DFF9A"];let CITY=null;
+const rgbOf=v=>v.map(q=>Math.round(clamp(q,0,1)*255)).join(",");
+function drawCity(w){const R=rng(w.seed),{a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day,dusk=ENV.dusk,wx=ENV.wx,nite=1-day,
+    cloudy=wx==="lluvia"?.45:wx==="tormenta"?.6:wx==="niebla"?.3:0,gl=w.s*.035*(P.dpr||1),
+    dyn={signs:[],beacons:[],holos:[],roads:[],search:[{x:a+W*.12,ph:0},{x:a+W*.9,ph:2.1},{x:a+W*.55,ph:4}],lanes:[]};
+  const pick=()=>NEON[Math.floor(R()*NEON.length)];
   ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
-  const s0=envc("#7A4560","#E4F2FA","#FFB067"),s1=envc("#3A2A5C","#A9D5F3","#D8648A"),s2=envc("#080B22","#5DA6E4","#35356F");
-  ctx.fillStyle=grad(0,c,0,e,[[0,css(s0)],[.45,css(s1)],[1,css(s2)]]);ctx.fillRect(a,c,W,H);
-  const cloudy=wx==="lluvia"?.5:wx==="tormenta"?.68:wx==="niebla"?.3:0;
-  if(cloudy){ctx.fillStyle=`rgba(${Math.round(70+90*day)},${Math.round(76+92*day)},${Math.round(90+90*day)},${cloudy})`;ctx.fillRect(a,c,W,H);}
-  ctx.fillStyle=`rgba(255,255,255,${.75*(1-day)*(1-dusk*.6)*(1-cloudy)})`;for(let i=0;i<16;i++)ctx.fillRect(a+R()*W,c+H*(.55+R()*.45),.014,.014);
-  if(w.sky&&!cloudy){const sa=Math.max(day,dusk);if(sa>.02){const sz=c+H*(.14+.66*day),sx=a+W*.26,sc=css(lerp([1,.55,.3],[1,.96,.78],day));
-      ctx.fillStyle=`rgba(255,230,160,${.25*sa})`;ctx.beginPath();ctx.arc(sx,sz,.3,0,7);ctx.fill();ctx.globalAlpha=sa;ctx.fillStyle=sc;ctx.beginPath();ctx.arc(sx,sz,.15,0,7);ctx.fill();ctx.globalAlpha=1;}
-    if(day<.6){ctx.globalAlpha=1-day/.6;ctx.fillStyle="rgba(255,240,200,.18)";ctx.beginPath();ctx.arc(a+W*.8,c+H*.8,.2,0,7);ctx.fill();
-      ctx.fillStyle="#F4EBD0";ctx.beginPath();ctx.arc(a+W*.8,c+H*.8,.12,0,7);ctx.fill();ctx.globalAlpha=1;}}
-  const far=css(envc("#262952","#9AA6C2","#4F416E")),near=css(envc("#12152E","#66718E","#2A2244")),spire=css(envc("#2E3160","#8592B2","#3E3462")),
-    p=.45*(1-day*.92),glass=`rgba(220,235,255,${.35*day*(1-cloudy)})`;
-  for(let x=a-.05;x<b;){const bw=.16+R()*.22,bh=H*(.3+R()*.4);ctx.fillStyle=far;ctx.fillRect(x,c,bw,bh);
-    for(let wy=c+.06;wy<c+bh-.05;wy+=.07)for(let wx2=x+.03;wx2<x+bw-.03;wx2+=.06){const r=R();if(r<p*.65){ctx.fillStyle="rgba(255,205,130,.55)";ctx.fillRect(wx2,wy,.022,.028);}else if(day>.2&&r<.5){ctx.fillStyle=glass;ctx.fillRect(wx2,wy,.022,.028);}}
-    x+=bw+.012;}
-  const sx=a+W*.32;ctx.fillStyle=spire;ctx.fillRect(sx,c,.24,H*.62);ctx.fillRect(sx+.04,c,.16,H*.74);ctx.fillRect(sx+.08,c,.08,H*.8);ctx.fillRect(sx+.11,c,.02,H*.93);
-  ctx.fillStyle="#FF4A4A";ctx.fillRect(sx+.105,c+H*.93,.03,.03);
-  for(let wy=c+.05;wy<c+H*.6;wy+=.07)for(let wx2=sx+.03;wx2<sx+.22;wx2+=.05){const r=R();if(r<p){ctx.fillStyle="rgba(255,225,160,.8)";ctx.fillRect(wx2,wy,.02,.03);}else if(day>.2&&r<.7){ctx.fillStyle=glass;ctx.fillRect(wx2,wy,.02,.03);}}
-  for(let x=a-.1;x<b;){const bw=.3+R()*.34,bh=H*(.12+R()*.34);ctx.fillStyle=near;ctx.fillRect(x,c,bw,bh);
-    for(let wy=c+.05;wy<c+bh-.06;wy+=.1)for(let wx2=x+.04;wx2<x+bw-.05;wx2+=.085){const r=R(),r2=R();
-      if(r<p){ctx.fillStyle=r2<.6?"#FFD27A":r2<.85?"#FFF0C4":"#A8D4FF";ctx.fillRect(wx2,wy,.042,.052);}else if(day>.2&&r<.6){ctx.fillStyle=glass;ctx.fillRect(wx2,wy,.042,.052);}}
-    if(R()<.5&&bw>.38){const tx=x+bw*.3,ty=c+bh;ctx.fillStyle=css(envc("#0B0D20","#4A5370","#1E1834"));ctx.fillRect(tx,ty,.015,.06);ctx.fillRect(tx+.1,ty,.015,.06);ctx.fillRect(tx-.01,ty+.06,.135,.12);
-      ctx.beginPath();ctx.moveTo(tx-.02,ty+.18);ctx.lineTo(tx+.0575,ty+.25);ctx.lineTo(tx+.135,ty+.18);ctx.fill();}
-    x+=bw+.02;}
-  if(wx==="niebla"){ctx.fillStyle=grad(0,c,0,e,[[0,`rgba(215,222,232,${.75-.2*(1-day)})`],[1,"rgba(215,222,232,.35)"]]);ctx.fillRect(a,c,W,H);}
-  ctx.restore();}
+  // sky: toxic magenta smog at night, sulphur haze by day, burning orange at dusk
+  const h0=envc("#B02A72","#F2A65A","#FF7A45"),h1=envc("#4E1660","#D8C47E","#A3356C"),h2=envc("#0A0520","#7FA3AE","#1E1238");
+  ctx.fillStyle=grad(0,c,0,e,[[0,css(h0)],[.5,css(h1)],[1,css(h2)]]);ctx.fillRect(a,c,W,H);
+  if(cloudy){ctx.fillStyle=`rgba(${Math.round(40+90*day)},${Math.round(30+90*day)},${Math.round(60+80*day)},${cloudy})`;ctx.fillRect(a,c,W,H);}
+  ctx.fillStyle=`rgba(255,255,255,${.7*nite*(1-dusk*.6)*(1-cloudy)})`;for(let i=0;i<30;i++)ctx.fillRect(a+R()*W,c+H*(.6+R()*.4),.01,.01);
+  if(w.sky&&!cloudy){const mx=a+W*.78,my=c+H*.82;   // a big pale moon by night, a smothered sun by day
+    if(nite>.55){ctx.globalAlpha=(nite-.55)/.45;ctx.fillStyle="rgba(255,200,240,.1)";ctx.beginPath();ctx.arc(mx,my,.2,0,7);ctx.fill();
+      ctx.fillStyle=grad(mx-.1,my-.1,mx+.1,my+.1,[[0,"#C9A6D8"],[1,"#FFE9F4"]]);ctx.beginPath();ctx.arc(mx,my,.11,0,7);ctx.fill();
+      ctx.fillStyle="rgba(150,110,170,.35)";[[.03,.025,.025],[-.035,-.02,.02],[.01,-.045,.015]].forEach(([dx,dy,r])=>{ctx.beginPath();ctx.arc(mx+dx,my+dy,r,0,7);ctx.fill();});ctx.globalAlpha=1;}
+    if(day>.5){ctx.globalAlpha=(day-.5)*2;ctx.fillStyle="rgba(255,235,170,.3)";ctx.beginPath();ctx.arc(a+W*.25,c+H*.78,.18,0,7);ctx.fill();
+      ctx.fillStyle="#FFF4D2";ctx.beginPath();ctx.arc(a+W*.25,c+H*.78,.09,0,7);ctx.fill();ctx.globalAlpha=1;}}
+  // smog streaks
+  const smog=rgbOf(envc("#FF5AB4","#FFF1C8","#FFB08A"));
+  for(let i=0;i<5;i++){ctx.fillStyle=`rgba(${smog},${.06+R()*.06})`;ctx.beginPath();ctx.ellipse(a+R()*W,c+H*(.45+R()*.45),.8+R()*1.2,.03+R()*.03,0,0,7);ctx.fill();}
+  // far megatowers: stepped tops, antennas with beacons, faint window rows
+  const far=css(envc("#1C0E30","#8E887A","#3A1E44")),farL=css(envc("#3A1F5C","#B5AB94","#5E3366"));
+  for(let x=a-.1;x<b;){const bw=.18+R()*.3,bh=H*(.42+R()*.48),st=R();ctx.fillStyle=far;ctx.fillRect(x,c,bw,bh);
+    if(st<.5){ctx.fillRect(x+bw*.18,c,bw*.64,bh+H*.06);if(st<.25)ctx.fillRect(x+bw*.35,c,bw*.3,bh+H*.11);}
+    const top=bh+(st<.25?H*.11:st<.5?H*.06:0),ax=x+bw*(.3+R()*.4);ctx.fillRect(ax,c+top-.01,.012,H*.07);dyn.beacons.push([ax+.006,c+top+H*.07,R()*6]);
+    ctx.fillStyle=farL;ctx.fillRect(x+bw-.018,c,.018,bh);if(R()<.6){ctx.fillStyle=`rgba(${R()<.5?"0,229,255":"255,46,136"},${.25+.45*nite})`;ctx.fillRect(R()<.5?x:x+bw-.006,c,.006,bh);}
+    for(let wy=c+.05;wy<c+bh-.04;wy+=.04)for(let wx2=x+.025;wx2<x+bw-.04;wx2+=.035)if(R()<.18+.3*nite){const q=R(),col=q<.35?"0,229,255":q<.6?"255,46,136":"255,210,140";ctx.fillStyle=`rgba(${col},${.25+.5*nite*R()})`;ctx.fillRect(wx2,wy,.016,.016);}
+    x+=bw+.03+R()*.05;}
+  // haze swallowing the foot of the far layer
+  ctx.fillStyle=grad(0,c,0,c+H*.45,[[0,`rgba(${rgbOf(h0)},.6)`],[1,`rgba(${rgbOf(h0)},0)`]]);ctx.fillRect(a,c,W,H*.45);
+  // elevated highway on pillars
+  const hy=c+H*.3;ctx.fillStyle=css(envc("#120A20","#5C5650","#1E1028"));ctx.fillRect(a,hy,W,.04);for(let x=a+.1;x<b;x+=.45)ctx.fillRect(x,c,.035,hy-c);
+  ctx.fillStyle=`rgba(255,120,200,${.25+.4*nite})`;ctx.fillRect(a,hy+.04,W,.004);
+  dyn.roads.push({y:hy+.024,sp:.5,dir:1,col:"255,250,235"},{y:hy+.01,sp:.38,dir:-1,col:"255,60,60"});
+  // mid towers: lit window grids in neon tints and vertical signs (some flicker, so those are drawn live)
+  const mid=css(envc("#160A26","#6E665E","#26132F"));
+  for(let x=a-.05;x<b;){const bw=.22+R()*.24,bh=H*(.3+R()*.3);ctx.fillStyle=mid;ctx.fillRect(x,c,bw,bh);
+    const p=.25+.35*nite;for(let wy=c+.06;wy<c+bh-.05;wy+=.06)for(let wx2=x+.03;wx2<x+bw-.035;wx2+=.05){if(R()>=p)continue;const q=R();
+      ctx.fillStyle=q<.45?`rgba(255,200,120,${.4+.3*nite})`:q<.7?`rgba(0,229,255,${.35+.3*nite})`:q<.9?`rgba(255,46,136,${.35+.3*nite})`:"rgba(177,76,255,.4)";ctx.fillRect(wx2,wy,.022,.03);}
+    if(R()<.6){const sw=.05,sh=.16+R()*.2,sx=R()<.5?x-sw*.4:x+bw-sw*.6,sy=c+bh*(.3+R()*.4),col=pick(),bars=[];for(let k=.03;k<sh-.03;k+=.032)bars.push([.25+R()*.5,k]);
+      ctx.fillStyle="#0B0614";ctx.fillRect(sx,sy,sw,sh);const s={x:sx,y:sy,w:sw,h:sh,col,bars,ph:R()*9};
+      if(R()<.4)dyn.signs.push(s);else neonSign(s,1,gl,day);}
+    x+=bw+.02+R()*.06;}
+  // near rooftops: dark blocks with neon edges and billboard frames (their hologram is live)
+  const near=css(envc("#09050F","#3A3434","#120814"));
+  for(let x=a-.1;x<b;){const bw=.32+R()*.32,bh=H*(.1+R()*.2);ctx.fillStyle=near;ctx.fillRect(x,c,bw,bh);
+    for(let wy=c+.04;wy<c+bh-.05;wy+=.07)for(let wx2=x+.04;wx2<x+bw-.05;wx2+=.08)if(R()<.3+.25*nite){ctx.fillStyle=R()<.7?"rgba(255,190,110,.75)":"rgba(120,240,255,.7)";ctx.fillRect(wx2,wy,.035,.04);}
+    const col=pick();ctx.save();ctx.shadowColor=col;ctx.shadowBlur=gl;ctx.globalAlpha=.45+.55*nite;ctx.fillStyle=col;ctx.fillRect(x,c+bh-.008,bw,.008);ctx.restore();
+    if(bw>.42&&R()<.6){const bx=x+bw*.18,by=c+bh+.05,bw2=bw*.6,bh2=.16+R()*.08;ctx.fillStyle="#120A1A";ctx.fillRect(bx+.03,c+bh,.012,.05);ctx.fillRect(bx+bw2-.042,c+bh,.012,.05);
+      ctx.fillStyle="#05030A";ctx.fillRect(bx-.01,by-.01,bw2+.02,bh2+.02);dyn.holos.push({x:bx,y:by,w:bw2,h:bh2,hue:R()*360,kind:Math.floor(R()*3)});}
+    x+=bw+.015+R()*.05;}
+  // the street glows up into the smog
+  ctx.globalCompositeOperation="lighter";ctx.fillStyle=grad(0,c,0,c+H*.28,[[0,`rgba(255,60,160,${.3*nite+.08})`],[1,"rgba(255,60,160,0)"]]);ctx.fillRect(a,c,W,H*.28);ctx.globalCompositeOperation="source-over";
+  if(wx==="niebla"){ctx.fillStyle=grad(0,c,0,e,[[0,`rgba(200,190,215,${.7-.2*nite})`],[1,"rgba(200,190,215,.3)"]]);ctx.fillRect(a,c,W,H);}
+  ctx.restore();
+  dyn.lanes=[{y:c+H*.5,sp:.32,dir:1,n:4,off:.1},{y:c+H*.64,sp:.46,dir:-1,n:3,off:.5},{y:c+H*.78,sp:.6,dir:1,n:2,off:.8}];   // flying-car lanes
+  CITY={a,c,W,H,dyn,nite,fog:wx==="niebla"?.35:1};}
+// a vertical neon sign: glowing border and rows of glyph-like bars over its dark panel; k scales the light (flicker)
+function neonSign(s,k,gl,day){if(k<=0)return;const{x,y,w,h,col,bars}=s;ctx.save();ctx.globalAlpha*=Math.min(1,k)*(.55+.45*(1-day*.7));
+  if(gl){ctx.shadowColor=col;ctx.shadowBlur=gl;}ctx.strokeStyle=col;ctx.lineWidth=.006;ctx.strokeRect(x+.004,y+.004,w-.008,h-.008);
+  ctx.fillStyle=col;bars.forEach(([bw,by])=>ctx.fillRect(x+(w-w*bw)/2,y+h-by-.012,w*bw,.012));ctx.restore();}
+function drawCityFx(t){if(!CITY)return;const{a,c,W,H,dyn,nite,fog}=CITY,day=1-nite;if(REDUCED)t=0;
+  inBackdrop(()=>{ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();ctx.globalAlpha=fog;ctx.globalCompositeOperation="lighter";
+    // searchlights sweeping the smog at night
+    if(nite>.25)for(const s of dyn.search){const ang=Math.PI/2+Math.sin(t*.22+s.ph)*.55,L=H*1.3,sp=.07,
+        g=ctx.createLinearGradient(s.x,c,s.x+Math.cos(ang)*L,c+Math.sin(ang)*L);g.addColorStop(0,`rgba(210,230,255,${.2*nite})`);g.addColorStop(1,"rgba(210,230,255,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(s.x,c);ctx.lineTo(s.x+Math.cos(ang-sp)*L,c+Math.sin(ang-sp)*L);ctx.lineTo(s.x+Math.cos(ang+sp)*L,c+Math.sin(ang+sp)*L);ctx.fill();}
+    // beacons blinking on the antennas
+    for(const[x,y,ph]of dyn.beacons){if(Math.sin(t*2.2+ph)<.55)continue;const r=.035,g=ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,"rgba(255,70,70,.95)");g.addColorStop(1,"rgba(255,40,40,0)");ctx.fillStyle=g;ctx.fillRect(x-r,y-r,2*r,2*r);}
+    // highway traffic: streams of head and tail lights
+    for(const r of dyn.roads){ctx.fillStyle=`rgba(${r.col},.85)`;for(let i=0;i<22;i++){const u=((((i*.618)%1+t*r.sp*r.dir/W)%1)+1)%1;ctx.fillRect(a+u*W,r.y,.022,.006);}}
+    // flickering signs: mostly steady with a little buzz, now and then a stutter
+    for(const s of dyn.signs){const f=((t*.5+s.ph)%6)<.35?(Math.sin(t*60+s.ph)>0?.15:.9):.85+.15*flickerNoise(t,s.ph);neonSign(s,f,0,day);
+      const cx=s.x+s.w/2,cy=s.y+s.h/2,g=ctx.createRadialGradient(cx,cy,0,cx,cy,s.h*.8);g.addColorStop(0,s.col+"55");g.addColorStop(1,s.col+"00");
+      ctx.globalAlpha=fog*f*(.4+.6*nite);ctx.fillStyle=g;ctx.fillRect(s.x-s.h,s.y-s.h*.3,s.w+2*s.h,s.h*1.6);ctx.globalAlpha=fog;}
+    // hologram billboards: shifting colour, a turning shape or bars or a wave, rolling scan lines
+    for(const h of dyn.holos){const hue=(h.hue+t*25)%360,{x,y,w}=h,hh=h.h,cx=x+w/2,cy=y+hh/2;ctx.save();ctx.beginPath();ctx.rect(x,y,w,hh);ctx.clip();
+      ctx.fillStyle=`hsla(${hue},95%,55%,${.22+.15*nite})`;ctx.fillRect(x,y,w,hh);ctx.strokeStyle=`hsla(${(hue+40)%360},100%,70%,.9)`;ctx.lineWidth=.008;
+      if(h.kind===0){const r=hh*.36,rot=t*.8;ctx.beginPath();for(let k=0;k<4;k++){const an=rot+k*Math.PI/2;ctx[k?"lineTo":"moveTo"](cx+Math.cos(an)*r,cy+Math.sin(an)*r*.9);}ctx.closePath();ctx.stroke();
+        ctx.beginPath();ctx.ellipse(cx,cy,Math.max(.002,r*Math.abs(Math.cos(rot))),r*.9,0,0,7);ctx.stroke();}
+      else if(h.kind===1){for(let k=0;k<5;k++)ctx.strokeRect(x+w*(.12+k*.16),y+hh*.12,w*.1,hh*(.2+.6*Math.abs(Math.sin(t*1.7+k*1.3))));}
+      else{ctx.beginPath();for(let k=0;k<=24;k++){const u=k/24;ctx[k?"lineTo":"moveTo"](x+u*w,cy+Math.sin(u*12+t*3)*hh*.28);}ctx.stroke();ctx.strokeRect(x+w*.08,y+hh*.12,w*.84,hh*.76);}
+      ctx.fillStyle="rgba(255,255,255,.12)";for(let k=0;k<6;k++)ctx.fillRect(x,y+((k/6+t*.25)%1)*hh,w,.006);ctx.restore();}
+    // flying cars: dark body, white headlight ahead, red tail light behind, a neon underglow
+    for(const L of dyn.lanes)for(let i=0;i<L.n;i++){const u=(((i/L.n+L.off+t*L.sp*L.dir/(W+.6))%1)+1)%1,x=a-.3+u*(W+.6),y=L.y+Math.sin(t*1.4+i*2)*.012,d=L.dir;
+      ctx.globalCompositeOperation="source-over";ctx.fillStyle="#0C0812";ctx.beginPath();ctx.moveTo(x-d*.055,y+.004);ctx.quadraticCurveTo(x-d*.05,y-.012,x,y-.012);ctx.lineTo(x+d*.05,y-.008);ctx.quadraticCurveTo(x+d*.062,y,x+d*.05,y+.006);ctx.lineTo(x-d*.055,y+.008);ctx.fill();
+      ctx.fillStyle="#1C1630";ctx.beginPath();ctx.ellipse(x-d*.006,y+.006,.024,.011,0,Math.PI,0);ctx.fill();ctx.fillStyle="rgba(120,220,255,.35)";ctx.beginPath();ctx.ellipse(x+d*.002,y+.006,.012,.007,0,Math.PI,0);ctx.fill();const ka=.3+.7*nite;
+      ctx.globalCompositeOperation="lighter";let g=ctx.createRadialGradient(x+d*.05,y,0,x+d*.05,y,.06);g.addColorStop(0,`rgba(220,245,255,${.9*ka})`);g.addColorStop(1,"rgba(150,220,255,0)");ctx.fillStyle=g;ctx.fillRect(x+d*.05-.06,y-.06,.12,.12);
+      g=ctx.createRadialGradient(x-d*.05,y,0,x-d*.05,y,.035);g.addColorStop(0,`rgba(255,50,80,${.9*ka})`);g.addColorStop(1,"rgba(255,30,60,0)");ctx.fillStyle=g;ctx.fillRect(x-d*.05-.035,y-.035,.07,.07);
+      ctx.fillStyle=`rgba(${d>0?"0,229,255":"255,46,136"},${.8*ka})`;ctx.fillRect(x-.035,y-.012,.07,.004);}
+    ctx.restore();});}
 // windows are real holes in the static layer: the backdrop city (and its rain) shows through, then glass shading goes on top
 function cutWindow(w){const {a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day;inPlane(w.wall,()=>{ctx.save();
   ctx.globalCompositeOperation="destination-out";ctx.fillStyle="#000";ctx.fillRect(a,c,W,H);ctx.globalCompositeOperation="source-over";
@@ -1398,7 +1512,7 @@ function drawTower(Lamb){const deep=Math.max(0,P.H-P.oy)/P.u+N+2,st=WALL_H+.35,R
   face(()=>{for(let k=1;k*st<deep;k++){const top=-.35-st*(k-1),bot=top-st;
       ctx.fillStyle="rgba(0,0,0,.16)";ctx.fillRect(-.3,top-.3,len,.3);ctx.fillStyle="rgba(255,255,255,.08)";ctx.fillRect(-.3,top-.34,len,.04);
       for(let i=0;i<n;i++){const s=-.3+gap*i+(gap-ww)/2,z0=bot+.95,z1=bot+2.4,on=R()<lit;
-        ctx.fillStyle=on?(R()<.7?"#FFD27A":"#FFF0C4"):glass;ctx.fillRect(s,z0,ww,z1-z0);
+        ctx.fillStyle=on?["#FFD27A","#FFF0C4","#FF4FB8","#3EE8FF","#B48CFF"][Math.floor(R()*5)]:glass;ctx.fillRect(s,z0,ww,z1-z0);
         ctx.fillStyle="rgba(0,0,0,.25)";ctx.fillRect(s+ww/2-.02,z0,.04,z1-z0);ctx.fillRect(s,z0,ww,.05);
         ctx.fillStyle="#B9B4AA";ctx.fillRect(s-.06,z0-.1,ww+.12,.1);}}
     ctx.fillStyle=grad(0,-.35,0,-.35-st*2.2,[[0,"rgba(0,0,0,0)"],[1,haze]]);ctx.globalAlpha=.75;ctx.fillRect(-.3,-deep,len,deep-.35);ctx.globalAlpha=1;});}
@@ -1574,8 +1688,11 @@ function wallFits(id,wall,s,z,exclude){const d=WCAT[id];if(s<.04||s+d.w>N-.04||z
   for(const o of RM.walls){if(o.uid===exclude||o.wall!==wall)continue;const od=WCAT[o.id];if(hit(s,s+d.w,o.s,o.s+od.w)&&hit(z,z+d.h,o.z,o.z+od.h))return false;}
   return true;}
 // off: grab offset while dragging (keeps the item under the finger where it was picked up); without it the item centres on the pointer
-function wallHover(sx,sy,off){const w=VIEW?null:wallAt(sx,sy);if(!w)return null;   // wall items hang from the front view onlyconst d=WCAT[placing.id],r5=v=>Math.round(v*20)/20,o=off||{s:-d.w/2,z:-d.h/2};
-  return{wall:w.wall,s:r5(clamp(w.s+o.s,.05,N-d.w-.05)),z:r5(clamp(w.z+o.z,.25,WALL_H-d.h-.05))};}
+function wallHover(sx,sy,off){const w=wallAt(sx,sy);if(!w)return null;const d=WCAT[placing.id],r5=v=>Math.round(v*20)/20,o=off||{s:-d.w/2,z:-d.h/2};
+  // worked out on the far wall under the pointer, then stored on the room wall that is (any of the four)
+  const s=r5(clamp(w.s+o.s,.05,N-d.w-.05)),ww=viewToWall(w.wall,s,d.w);return ww&&{wall:ww.wall,s:r5(ww.s),z:r5(clamp(w.z+o.z,.25,WALL_H-d.h-.05))};}
+// the wall item being placed, as seen in the view (null while its wall is a near one)
+function hoverView(){const v=hover&&placing&&wallToView(hover.wall,hover.s,WCAT[placing.id].w);return v&&{...v,z:hover.z};}
 function hitWall(sx,sy){const w=wallAt(sx,sy);if(!w)return null;
   for(let i=VWALLS.length-1;i>=0;i--){const it=VWALLS[i],d=WCAT[it.id];
     if(it.wall===w.wall&&w.s>=it.s-.08&&w.s<=it.s+d.w+.08&&w.z>=it.z-.08&&w.z<=it.z+d.h+.15)return it.uid;}return null;}
@@ -2023,7 +2140,7 @@ function frameRoom(t){ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHide();refre
   if(key!==STATIC.key){drawBackdrop();drawStatic(lights);STATIC.key=key;STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
   else if(sc.th!==ROT.th||sc.fast&&!FAST||moved&&performance.now()-CAM.t>180){drawStatic(lights);STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(BACK.cv,0,0);ctx.restore();
-  drawRain(t);
+  drawCityFx(t);drawRain(t);
   {const s=STATIC.cam,k=CAM.z/s.z;ctx.save();ctx.setTransform(k,0,0,k,(CAM.ox-k*s.ox)*P.dpr,(CAM.oy-k*s.oy)*P.dpr);ctx.drawImage(STATIC.cv,0,0);ctx.restore();}
   VWINS.forEach(w=>sortBoxes(frameBoxes(w)).forEach(b=>drawBox(ctx,P,b,L)));
   VWALLS.forEach(it=>{if(placing&&placing.moveUid===it.uid)return;drawWallItem(it,L,selW===it.uid?"sel":null);});
@@ -2079,15 +2196,15 @@ function hoverAt(sx,sy){return placing.kind==="wall"?wallHover(sx,sy):hoverCell(
 // dragging it with the mouse, picks it up; while placing, the ghost follows the pointer and letting go drops it there.
 const HOLD_MS=300,TAP_PX=8;let G=null;
 function beginMove(p){placing={kind:"floor",id:p.id,r:p.r,v:p.v,moveUid:p.uid};hover={x:Math.round(PETS.get(p.uid)?.x??p.x),y:Math.round(PETS.get(p.uid)?.y??p.y)};selUid=null;updateBar();}
-function beginWallMove(it){rotHome();placing={kind:"wall",id:it.id,v:it.v,txt:it.txt,moveUid:it.uid};hover={wall:it.wall,s:it.s,z:it.z};selW=null;updateBar();}
+function beginWallMove(it){placing={kind:"wall",id:it.id,v:it.v,txt:it.txt,moveUid:it.uid};hover={wall:it.wall,s:it.s,z:it.z};selW=null;updateBar();}
 function onGhost(sx,sy){if(!hover)return false;
   if(placing.kind==="floor"){const c=toCell(sx,sy),f=itemFoot({id:placing.id,r:placing.r});return c.x>=hover.x&&c.x<hover.x+f.w&&c.y>=hover.y&&c.y<hover.y+f.d;}
-  const w=wallAt(sx,sy),d=WCAT[placing.id];return!!w&&w.wall===hover.wall&&w.s>=hover.s-.1&&w.s<=hover.s+d.w+.1&&w.z>=hover.z-.1&&w.z<=hover.z+d.h+.1;}
+  const w=wallAt(sx,sy),h=hoverView(),d=WCAT[placing.id];return!!w&&!!h&&w.wall===h.wall&&w.s>=h.s-.1&&w.s<=h.s+d.w+.1&&w.z>=h.z-.1&&w.z<=h.z+d.h+.1;}
 function startDrag(){const g=G;if(!g)return;g.timer=0;let grab=false;
   if(!placing){if(!g.item)return;g.item.it?beginWallMove(g.item.it):beginMove(g.item.p);grab=true;}
   // keep the grab point: an item picked up by its top stays put instead of jumping under the finger
   g.off=null;if(hover&&(grab||onGhost(g.x0,g.y0))){if(placing.kind==="floor"){const c=toCell(g.x0,g.y0);g.off={x:hover.x-c.x,y:hover.y-c.y};}
-    else{const w=wallAt(g.x0,g.y0);if(w&&w.wall===hover.wall)g.off={s:hover.s-w.s,z:hover.z-w.z};}}
+    else{const w=wallAt(g.x0,g.y0),h=hoverView();if(w&&h&&w.wall===h.wall)g.off={s:h.s-w.s,z:h.z-w.z};}}
   g.drag=true;try{cv.setPointerCapture(g.id);}catch(e){}try{navigator.vibrate?.(12);}catch(e){}dragTo(...g.last);}
 function dragTo(sx,sy){const o=G&&G.off;let h;
   if(placing.kind==="floor"){if(o){const c=toCell(sx,sy),f=itemFoot({id:placing.id,r:placing.r});h={x:clamp(c.x+o.x,0,N-f.w),y:clamp(c.y+o.y,0,N-f.d)};}else h=hoverCell(sx,sy);}
@@ -2139,7 +2256,7 @@ cv.addEventListener("contextmenu",e=>e.preventDefault());
 function onTap(sx,sy,touch){
   if(placing){const c=hoverAt(sx,sy);if(!c)return;let same=!touch;
     if(touch&&hover){if(placing.kind==="floor")same=c.x===hover.x&&c.y===hover.y;
-      else{const w=wallAt(sx,sy),d=WCAT[placing.id];same=w&&w.wall===hover.wall&&w.s>=hover.s-.1&&w.s<=hover.s+d.w+.1&&w.z>=hover.z-.1&&w.z<=hover.z+d.h+.1;}}
+      else same=onGhost(sx,sy);}
     if(same&&hover)tryPlace(touch?hover:c);else{hover=c;updateBar();}return;}
   const uid=hitItem(sx,sy);
   if(uid===-3){toast("Es el personaje de otra persona");return;}
@@ -2238,8 +2355,8 @@ function renderInv(){const g=document.getElementById("invGrid"),ids=Object.keys(
     el.innerHTML=`<canvas></canvas><div class="n">${nameOf(id)} × ${S.inv[id]}</div><button class="btn sm">Colocar</button>`;
     preview(el.querySelector("canvas"),id);el.querySelector("button").onclick=()=>startPlacing(id);g.appendChild(el);});}
 function startPlacing(id){if(ON.visit){toast("Estás de visita: vuelve a tu habitación para decorar");return;}selUid=null;selW=null;hover=null;
-  if(WCAT[id]){rotHome();placing={kind:"wall",id,v:0};const d=WCAT[id];
-    outer:for(const wall of ["back","left"])for(let z=1.4;z>=.4;z-=.2)for(let s=.2;s<N-d.w;s+=.25)if(wallFits(id,wall,s,z)){hover={wall,s,z};break outer;}}
+  if(WCAT[id]){placing={kind:"wall",id,v:0};const d=WCAT[id];   // first free spot on a wall in sight
+    outer:for(const vw of ["back","left"])for(let z=1.4;z>=.4;z-=.2)for(let s=.2;s<N-d.w;s+=.25){const ww=viewToWall(vw,s,d.w);if(ww&&wallFits(id,ww.wall,ww.s,z)){hover={wall:ww.wall,s:ww.s,z};break outer;}}}
   else{placing={kind:"floor",id,r:0,v:0};
     outer:for(let s=0;s<2*N;s++)for(let x=0;x<=s;x++){const y=s-x;if(x<N&&y<N&&placeZ(id,0,x,y)!==null){hover={x,y};break outer;}}}
   updateBar();document.getElementById("roomWrap").scrollIntoView({behavior:"smooth",block:"start"});}
@@ -2525,7 +2642,7 @@ function layoutFrom(d){const n=Math.max(6,Math.min(10,d.size|0||8));
     floorStyle:STYLES.floor.some(t=>t.id===d.floorStyle)?d.floorStyle:"lego",floorColor:ok(d.floorColor)?d.floorColor:"#C9965B",
     wallStyle:STYLES.wall.some(t=>t.id===d.wallStyle)?d.wallStyle:"lego",wallColor:ok(d.wallColor)?d.wallColor:"#EAD9BC",
     placed:(Array.isArray(d.placed)?d.placed:[]).filter(p=>p&&CATALOG[p.id]).slice(0,120).map(p=>({uid:p.uid|0,id:p.id,x:p.x|0,y:p.y|0,r:p.r|0,z:+p.z||0,v:p.v|0})),
-    walls:(Array.isArray(d.walls)?d.walls:[]).filter(w=>w&&WCAT[w.id]).slice(0,40).map(w=>({uid:w.uid|0,id:w.id,wall:w.wall==="left"?"left":"back",s:+w.s||0,z:+w.z||1,v:w.v|0,txt:typeof w.txt==="string"?w.txt:undefined}))};}
+    walls:(Array.isArray(d.walls)?d.walls:[]).filter(w=>w&&WCAT[w.id]).slice(0,40).map(w=>({uid:w.uid|0,id:w.id,wall:WALLPT[w.wall]?w.wall:"back",s:+w.s||0,z:+w.z||1,v:w.v|0,txt:typeof w.txt==="string"?w.txt:undefined}))};}
 let pushTimer=null;
 function pushLayout(){if(!ON.host||!ON.db||!ON.code)return;clearTimeout(pushTimer);
   pushTimer=setTimeout(()=>{ON.db.doc("rooms/"+ON.code).set(roomPayload()).catch(()=>{});},900);}
