@@ -295,9 +295,14 @@ const depthKey=a=>Array.isArray(a)?a[0]+a[3]/2+a[1]+a[4]/2:((a.L||a.R)[0]+(a.L||
 const byDepth=list=>list.sort((p,q)=>depthKey(p)-depthKey(q));
 // a soft round pet bed: a flat base, a ring of plump cushions (no outlines, so they melt into one puffy rim) and a cushion inside
 const BED_TOP=.1;
-function softBed(R,ring,pr,prz,cr){const o=[CYL(.5,.5,0,R,.035,"$A",1.03)];
-  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;o.push(SPH(.5+Math.cos(a)*ring,.5+Math.sin(a)*ring,.04+prz,pr,"$A","o",prz));}
-  o.push(SPH(.5,.5,.035+.04,cr,"$B","o",.04));return o;}
+// a blanket hanging over the edge of a bed: n panels whose hems alternate in length (soft folds) with a lighter hem band.
+// side drapes run along y at x..x+w, foot drapes run along x at y..y+w; top z is the blanket's top
+function drapeY(x,w,y0,y1,zt,zb,n=5,c="$L",hc="$M"){const o=[],s=(y1-y0)/n;for(let i=0;i<n;i++){const b=zb+(i%2?.035:0);o.push([x,y0+i*s,b+.025,w,s,zt-b-.025,c,"n"],[x,y0+i*s,b,w,s,.025,hc,"n"]);}return o;}
+function drapeX(y,w,x0,x1,zt,zb,n=4,c="$L",hc="$M"){const o=[],s=(x1-x0)/n;for(let i=0;i<n;i++){const b=zb+(i%2?.035:0);o.push([x0+i*s,y,b+.025,s,w,zt-b-.025,c,"n"],[x0+i*s,y,b,s,w,.025,hc,"n"]);}return o;}
+// a little heap of kibble in a bowl: round pieces in two browns, piled higher in the middle
+function kibble(){const R=rng(131),o=[];
+  for(let i=0;i<26;i++){const a=R()*Math.PI*2,r=Math.sqrt(R())*.16;o.push(SPH(.5+Math.cos(a)*r,.5+Math.sin(a)*r,.12+(1-r/.16)*.045+R()*.01,.022,R()<.5?"#9A5A2A":"#B8743A","",.015));}
+  return byDepth(o);}
 // leaves fanning out from one point
 function rosette(cx,cy,z,n,len,rise,wd,cols,seed,dr=.03,k){const R=rng(seed),o=[];
   for(let i=0;i<n;i++){const a=i/n*Math.PI*2+R()*.6,l=len*(.75+R()*.45);o.push(LF(cx,cy,z,cx+Math.cos(a)*l,cy+Math.sin(a)*l,z+rise*(.55+R()*.75),wd*(.8+R()*.4),cols[i%cols.length],dr,undefined,k));}
@@ -325,8 +330,9 @@ const CATALOG = {
   cama:{name:"Cama",cat:"camas",bed:{dx:0,dz:0},w:1,d:2,price:60,tok:{L:"#3A6FD8",M:"#5B8BEA",W:"#7A4E2D",H:"#6B4426"},
     vars:[{n:"Azul"},{n:"Roja",tok:{L:"#C8342B",M:"#E0564C"}},{n:"Verde",tok:{L:"#3E8F5A",M:"#5BAE76"}},{n:"Gris",tok:{L:"#6B7078",M:"#8C929B"}},{n:"Rosa",tok:{L:"#E07AA0",M:"#F09ABA"}},{n:"Mostaza",tok:{L:"#D9A12E",M:"#EDBB4E"}},{n:"Blanca",tok:{L:"#F2F0EA",M:"#FFFFFF",W:"#ECEAE4",H:"#D6D3CB"}}],
     parts:[[0,0,0,.1,.1,.1,"#3A2416","n"],[.9,0,0,.1,.1,.1,"#3A2416","n"],[0,1.9,0,.1,.1,.1,"#3A2416","n"],[.9,1.9,0,.1,.1,.1,"#3A2416","n"],
-      [0,0,.1,1,2,.3,"$W","n"],[0,0,.1,1,.12,1.05,"$H"],[0,1.9,.1,1,.1,.5,"$H"],
-      [.05,.12,.4,.9,1.78,.2,"#F4F4F4","n"],[.15,.17,.6,.7,.38,.13,"#E6EAF2","n"],[.03,.72,.6,.94,1.15,.06,"$L","n"],[.03,.72,.66,.94,.14,.03,"$M","n"],[.03,1.87,.38,.94,.03,.28,"$L","n"]]},
+      [.04,0,.1,.92,2,.3,"$W","n"],[0,0,.1,1,.12,1.05,"$H"],[0,1.9,.1,1,.1,.5,"$H"],
+      [.05,.12,.4,.9,1.75,.2,"#F4F4F4","n"],[.15,.17,.6,.7,.38,.13,"#E6EAF2","n"],[.03,.72,.6,.94,1.15,.06,"$L","n"],[.03,.72,.66,.94,.14,.03,"$M","n"],
+      ...drapeY(0,.03,.72,1.87,.66,.24),...drapeY(.97,.03,.72,1.87,.66,.24),...drapeX(1.87,.03,.03,.97,.66,.36)]},
   mesita:{name:"Mesita de noche",cat:"camas",w:1,d:1,price:25,surface:.55,tok:{W:"#A87240",K:"#8A5A36"},
     vars:[{n:"Roble"},{n:"Nogal",tok:{W:"#6B4426",K:"#4E3019"}},{n:"Blanca",tok:{W:"#ECEAE4",K:"#D6D3CB"}},{n:"Negra",tok:{W:"#3A3D48",K:"#2B2F3A"}}],
     parts:[[.1,.15,0,.8,.7,.55,"$W"],[.16,.85,.3,.68,.006,.18,"$K","n"],[.46,.856,.36,.08,.012,.05,"#C9A44C","n"],[.16,.85,.06,.68,.006,.18,"$K","n"],[.46,.856,.12,.08,.012,.05,"#C9A44C","n"]]},
@@ -388,9 +394,23 @@ const CATALOG = {
     tok:{B:"#EADBC4",K:"#DCC6A6",W:"#F6EEE0",M:"#4A3528",T:"#4A3528",E:"#4A3528",L:"#5A4232",Y:"#5AA8E8"},parts:[]},
   perro:{name:"Poodle negro",cat:"mascotas",pet:true,dog:true,boxy:true,rig:"dog",maxH:.7,bedId:"camaPerro",w:1,d:1,price:120,speed:.85,
     tok:{B:"#34343F",M:"#2C2C36",E:"#3A3A46",L:"#34343F",T:"#3A3A46",Y:"#5A3A22"},parts:[]},
-  camaPerro:{name:"Cama de perro",cat:"mascotas",w:1,d:1,price:20,soft:true,tok:{A:"#A8523A",B:"#E8D8BC"},
-    vars:[{n:"Terracota"},{n:"Gris",tok:{A:"#4A4F58",B:"#C9CED6"}},{n:"Azul",tok:{A:"#2F5FA8",B:"#BBD4F2"}},{n:"Verde",tok:{A:"#3E6B4A",B:"#C2E0C8"}},{n:"Roja",tok:{A:"#B8302A",B:"#F2C9C2"}}],
-    parts:softBed(.46,.35,.115,.062,.3)},
+  // dog bed in the minifigure's block style: padded back and sides, a low front to step in, a cushion and a bone on the back
+  camaPerro:{name:"Cama de perro",cat:"mascotas",w:1,d:1,price:20,tok:{A:"#A8523A",B:"#E8D8BC",C:"#C46A4E"},
+    vars:[{n:"Terracota"},{n:"Gris",tok:{A:"#4A4F58",B:"#C9CED6",C:"#626875"}},{n:"Azul",tok:{A:"#2F5FA8",B:"#BBD4F2",C:"#4A7AC4"}},{n:"Verde",tok:{A:"#3E6B4A",B:"#C2E0C8",C:"#558A63"}},{n:"Roja",tok:{A:"#B8302A",B:"#F2C9C2",C:"#D24A42"}}],
+    parts:[[.06,.08,0,.88,.84,.05,"$A","n"],[.06,.08,.05,.88,.15,.13,"$A","n"],[.06,.08,.18,.88,.15,.014,"$C","n"],
+      [.06,.23,.05,.15,.55,.1,"$A","n"],[.06,.23,.15,.15,.55,.012,"$C","n"],[.79,.23,.05,.15,.55,.1,"$A","n"],[.79,.23,.15,.15,.55,.012,"$C","n"],
+      [.06,.78,.05,.88,.14,.05,"$A","n"],[.06,.78,.1,.88,.14,.01,"$C","n"],[.21,.23,.05,.58,.55,.05,"$B","n"],
+      [.4,.23,.09,.2,.006,.035,"#F4F2EC","n"],[.36,.23,.08,.05,.006,.055,"#F4F2EC","n"],[.59,.23,.08,.05,.006,.055,"#F4F2EC","n"],
+      [.45,.47,.1,.1,.08,.004,"$C","n"],[.43,.41,.1,.03,.03,.004,"$C","n"],[.485,.39,.1,.03,.03,.004,"$C","n"],[.54,.41,.1,.03,.03,.004,"$C","n"]]},
+  // food and water for the pets
+  platoAgua:{name:"Plato con agua",cat:"mascotas",w:1,d:1,price:15,tok:{A:"#2F7DD1",B:"#F4F2EC"},
+    vars:[{n:"Azul"},{n:"Rojo",tok:{A:"#C8342B"}},{n:"Verde",tok:{A:"#3E8F5A"}},{n:"Rosa",tok:{A:"#E07AA0"}}],
+    parts:[CYL(.5,.5,0,.17,.1,"$A",1.32),CYL(.5,.5,.09,.235,.022,"$A"),CYL(.5,.5,.105,.205,.008,"#7FCBF0"),SPH(.44,.44,.115,.05,"#D8F2FF","o",.004)],
+    // light rippling across the water
+    anim:(ps,t,p)=>{const k=.5+.5*Math.sin(t*1.6+p.uid);ps[2].c=hexLerp("#6CC0EC","#9AD8F6",k);ps[3].x+=.05*Math.sin(t*.9+p.uid);ps[3].y+=.04*Math.cos(t*.7+p.uid);}},
+  platoComida:{name:"Plato con comida",cat:"mascotas",w:1,d:1,price:15,tok:{A:"#C8342B",B:"#F4F2EC"},
+    vars:[{n:"Rojo"},{n:"Azul",tok:{A:"#2F7DD1"}},{n:"Verde",tok:{A:"#3E8F5A"}},{n:"Amarillo",tok:{A:"#E0A21E"}}],
+    parts:[CYL(.5,.5,0,.17,.1,"$A",1.32),CYL(.5,.5,.09,.235,.022,"$A"),CYL(.5,.5,.104,.205,.006,"#5A3A22"),...kibble()]},
   // medical set
   camilla:{name:"Camilla",cat:"medico",w:1,d:2,price:70,tok:{A:"#5FA3C9"},vars:[{n:"Celeste"},{n:"Verde",tok:{A:"#5FAE8C"}},{n:"Negra",tok:{A:"#3A3D48"}}],
     parts:[[.08,.08,0,.06,.06,.42,"#9AA0AD","cn"],[.86,.08,0,.06,.06,.42,"#9AA0AD","cn"],[.08,1.86,0,.06,.06,.42,"#9AA0AD","cn"],[.86,1.86,0,.06,.06,.42,"#9AA0AD","cn"],
@@ -428,20 +448,24 @@ const CATALOG = {
   camaDoble:{name:"Cama doble",cat:"camas",w:2,d:2,price:90,bed:{dx:.05,dz:.01},tok:{L:"#3A6FD8",M:"#5B8BEA",W:"#7A4E2D",H:"#6B4426",P:"#D9CFC0"},
     vars:[{n:"Azul"},{n:"Roja",tok:{L:"#C8342B",M:"#E0564C"}},{n:"Verde",tok:{L:"#3E8F5A",M:"#5BAE76"}},{n:"Gris",tok:{L:"#6B7078",M:"#8C929B"}},{n:"Blanca y nogal",tok:{L:"#F2F0EA",M:"#FFFFFF",W:"#4E3019",H:"#3A2416",P:"#C9B79A"}}],
     parts:[[0,0,0,.12,.12,.1,"#3A2416","n"],[1.88,0,0,.12,.12,.1,"#3A2416","n"],[0,1.88,0,.12,.12,.1,"#3A2416","n"],[1.88,1.88,0,.12,.12,.1,"#3A2416","n"],
-      [0,0,.1,2,2,.3,"$W","n"],[0,0,.1,2,.14,1.15,"$H","n"],[.1,.14,.45,1.8,.03,.7,"$P","n"],
+      [.04,0,.1,1.92,1.95,.3,"$W","n"],[0,0,.1,2,.14,1.15,"$H","n"],[.1,.14,.45,1.8,.03,.7,"$P","n"],
       [.06,.17,.4,1.88,1.77,.2,"#F4F4F4","n"],[.18,.22,.6,.75,.34,.14,"#E6EAF2","n"],[1.07,.22,.6,.75,.34,.14,"#E6EAF2","n"],
-      [.04,.7,.6,1.9,1.25,.07,"$L","n"],[.04,.7,.67,1.9,.14,.03,"$M","n"],[.04,1.95,.4,1.9,.03,.27,"$L","n"],[1.94,.7,.4,.03,1.25,.27,"$L","n"]]},
+      [.04,.7,.6,1.92,1.25,.07,"$L","n"],[.04,.7,.67,1.92,.14,.03,"$M","n"],
+      ...drapeY(.01,.03,.7,1.95,.67,.22,6),...drapeY(1.96,.03,.7,1.95,.67,.22,6),...drapeX(1.95,.03,.04,1.96,.67,.22,6)]},
   litera:{name:"Litera",cat:"camas",w:1,d:2,price:85,bed:{dx:0,dz:-.14},tok:{L:"#3A6FD8",M:"#C8342B",W:"#C98A4B"},
     vars:[{n:"Roble"},{n:"Blanca",tok:{W:"#ECEAE4",L:"#5B8BEA",M:"#F2B705"}},{n:"Negra",tok:{W:"#2B2F3A",L:"#3E8F5A",M:"#9AA0AD"}}],
     parts:[[0,0,0,.08,.08,2.05,"$W","n"],[.92,0,0,.08,.08,2.05,"$W","n"],[0,1.92,0,.08,.08,2.05,"$W","n"],[.92,1.92,0,.08,.08,2.05,"$W","n"],
-      [0,.08,.15,1,1.84,.15,"$W","n"],[.05,.12,.3,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,.46,.66,.34,.12,"#E6EAF2","n"],[.03,.7,.46,.88,1.18,.05,"$L","n"],
-      [0,.08,1.2,1,1.84,.14,"$W","n"],[.05,.12,1.34,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,1.5,.66,.34,.12,"#E6EAF2","n"],[.03,.7,1.5,.88,1.18,.05,"$M","n"],
+      [.04,.08,.15,.92,1.84,.15,"$W","n"],[.07,.12,.3,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,.46,.66,.34,.12,"#E6EAF2","n"],[.04,.7,.46,.92,1.18,.05,"$L","n"],
+      ...drapeY(.01,.03,.7,1.88,.51,.24,5,"$L","$L"),...drapeY(.96,.03,.7,1.88,.51,.24,5,"$L","$L"),
+      [.04,.08,1.2,.92,1.84,.14,"$W","n"],[.07,.12,1.34,.86,1.76,.16,"#F4F4F4","n"],[.15,.16,1.5,.66,.34,.12,"#E6EAF2","n"],[.04,.7,1.5,.88,1.18,.05,"$M","n"],
+      ...drapeY(.01,.03,.7,1.88,1.55,1.3,5,"$M","$M"),
       [.92,.08,1.5,.08,1.2,.16,"$W","n"],
       [.2,1.94,0,.06,.06,1.65,"$W","n"],[.7,1.94,0,.06,.06,1.65,"$W","n"],[.26,1.95,.38,.44,.04,.04,"$W","n"],[.26,1.95,.72,.44,.04,.04,"$W","n"],[.26,1.95,1.06,.44,.04,.04,"$W","n"],[.26,1.95,1.4,.44,.04,.04,"$W","n"]]},
   camaFuton:{name:"Cama japonesa",cat:"camas",w:2,d:2,price:75,bed:{dx:.05,dz:-.28},tok:{L:"#2E4A3A",M:"#4E7A5A",W:"#B88A5A"},
     vars:[{n:"Verde"},{n:"Gris",tok:{L:"#4A4F58",M:"#6B7078"}},{n:"Arena",tok:{L:"#C9B79A",M:"#E0D2BA"}},{n:"Índigo",tok:{L:"#2B3A6B",M:"#3E5290",W:"#5A3A22"}}],
     parts:[[0,0,0,2,2,.14,"$W","n"],[0,0,.14,2,.08,.55,"$W","n"],[.1,.12,.14,1.8,1.78,.18,"#F4F2EC","n"],[.25,.18,.32,.6,.3,.1,"#E6EAF2","n"],[1.15,.18,.32,.6,.3,.1,"#E6EAF2","n"],
-      [.08,.6,.32,1.84,1.3,.06,"$L","n"],[.08,.6,.38,1.84,.12,.02,"$M","n"]]},
+      [.08,.6,.32,1.84,1.3,.06,"$L","n"],[.08,.6,.38,1.84,.12,.02,"$M","n"],
+      ...drapeY(.05,.03,.6,1.9,.38,.15,6),...drapeY(1.92,.03,.6,1.9,.38,.15,6),...drapeX(1.9,.03,.08,1.92,.38,.15,6)]},
   // ---- desks & chairs ----
   escritorioGamer:{name:"Escritorio gamer",cat:"escritorio",w:2,d:1,price:120,surface:.78,desk:{seat:.6,chair:"#1C1C22",accent:"#C8342B"},
     parts:[[.04,.12,0,.1,.76,.72,"#1C1C22","n"],[1.86,.12,0,.1,.76,.72,"#1C1C22","n"],[1.5,.16,0,.32,.6,.62,"#17181E","n"],[1.53,.76,.08,.26,.005,.46,"#FF3B6B","ne","rgb"],
@@ -469,8 +493,12 @@ const CATALOG = {
     vars:[{n:"Gris"},{n:"Azul",tok:{A:"#2F5FA8",M:"#4A72B8"}},{n:"Blanca",tok:{A:"#D9DCE2",M:"#F4F4F4"}}],
     parts:[[.24,.24,0,.52,.52,.05,"#2B2F3A","cn"],[.46,.46,.05,.08,.08,.32,"#9AA0AD","cn"],[.2,.26,.37,.6,.56,.1,"$A","n"],
       [.22,.18,.5,.56,.06,.62,"#2B2F3A","n"],[.26,.24,.54,.48,.005,.52,"$M","n"],[.13,.48,.47,.04,.04,.13,"#2B2F3A","n"],[.83,.48,.47,.04,.04,.13,"#2B2F3A","n"],[.12,.36,.6,.06,.3,.04,"#2B2F3A","n"],[.82,.36,.6,.06,.3,.04,"#2B2F3A","n"]]},
-  puf:{name:"Puf",cat:"escritorio",w:1,d:1,price:25,tok:{C:"#D9A12E"},vars:[{n:"Mostaza"},{n:"Gris",tok:{C:"#6B7078"}},{n:"Rosa",tok:{C:"#E09AAE"}},{n:"Verde",tok:{C:"#5BAE76"}},{n:"Azul",tok:{C:"#3E6FB0"}}],
-    parts:[[.14,.14,0,.72,.72,.28,"$C","c t.92"],[.2,.2,.28,.6,.6,.1,"$C","cn t.7"]]},
+  // plush pouf: a tall rounded drum with darker piping and a tufted top (a centre button and a ring of buttons)
+  puf:{name:"Puf",cat:"escritorio",w:1,d:1,price:25,tok:{C:"#D9A12E",D:"#B07E1C"},
+    vars:[{n:"Mostaza"},{n:"Gris",tok:{C:"#6B7078",D:"#4E535B"}},{n:"Rosa",tok:{C:"#E09AAE",D:"#C27288"}},{n:"Verde",tok:{C:"#5BAE76",D:"#3F8A57"}},{n:"Azul",tok:{C:"#3E6FB0",D:"#2C5590"}}],
+    parts:[CYL(.5,.5,0,.26,.045,"$D",1.12),CYL(.5,.5,.045,.295,.16,"$C",1.1),CYL(.5,.5,.205,.325,.14,"$C",.9),CYL(.5,.5,.335,.296,.03,"$D"),
+      DOME(.5,.5,.36,.29,.07,"$C"),SPH(.5,.5,.43,.022,"$D","",.012),
+      ...Array.from({length:6},(_,i)=>{const a=i/6*Math.PI*2+.3;return SPH(.5+Math.cos(a)*.17,.5+Math.sin(a)*.17,.415,.018,"$D","",.01);})]},
   // ---- lamps ----
   lamparaArco:{name:"Lámpara de arco",cat:"lamparas",w:1,d:1,price:45,tok:{S:"#F4F7FF"},light:{dz:1.05,c:[1,.85,.65],i:2,pool:2.8,col:"255,215,160",pa:.38,off:[.5,1.16]},
     vars:[{n:"Blanca"},{n:"Dorada",tok:{S:"#E3B219"},lc:[1,.75,.4],col:"255,190,100"},{n:"Negra",tok:{S:"#3A3D48"},lc:[1,.8,.6],col:"255,200,140"}],
@@ -1752,9 +1780,9 @@ function petBoxes(p,t){const w=PETS.get(p.uid);if(!w)return[];const def=CATALOG[
   const bed=petBedUnder(p,w),cxr=Math.round(w.x),cyr=Math.round(w.y),bt=bed&&Math.hypot(w.x-cxr,w.y-cyr)<.38?(def.sleepsOn?bedSurface(bed,cxr,cyr):BED_TOP):0;w.bz=w.bz===undefined||REDUCED?bt:w.bz+(bt-w.bz)*Math.min(1,dt*6);
   const zoff=w.bz+groundAt(w.x,w.y),pose={st,prev,e:k*k*(3-2*k),t,seed,dist:w.dist||0,still:REDUCED};let mb;
   if(def.boxy){const{parts,head}=petBlocks(def)(pose),bs=rotParts(parts.map(a=>parsePart(a)),1,1,w.dir).map(b=>({...b,x:b.x+w.x,y:b.y+w.y,z:b.z+zoff,owner:p.uid}));
-    mb=composite(sortBoxes(bs),p.uid);if(st==="sleep"){let[hx,hy]=head;for(let i=0;i<(w.dir||0);i++)[hx,hy]=[1-hy,hx];ZZZ.push([hx+w.x,hy+w.y,head[2]+zoff]);}}
+    mb=composite(sortBoxes(bs),p.uid);if(st==="sleep"){let[hx,hy]=head;for(let i=0;i<(w.dir||0);i++)[hx,hy]=[1-hy,hx];ZZZ.push([hx+w.x,hy+w.y,head[2]+zoff-.05,.55]);}}
   else{const{T,head}=petMesh(def,pose);mb=meshBox(T,w.ang,w.x,w.y,zoff,p.uid);
-    if(st==="sleep"){const c=Math.cos(w.ang)*PET_SCALE,s=Math.sin(w.ang)*PET_SCALE;ZZZ.push([.5+(head[0]-.5)*c-(head[1]-.5)*s+w.x,.5+(head[0]-.5)*s+(head[1]-.5)*c+w.y,head[2]*PET_SCALE+zoff+.12]);}}
+    if(st==="sleep"){const c=Math.cos(w.ang)*PET_SCALE,s=Math.sin(w.ang)*PET_SCALE;ZZZ.push([.5+(head[0]-.5)*c-(head[1]-.5)*s+w.x,.5+(head[0]-.5)*s+(head[1]-.5)*c+w.y,head[2]*PET_SCALE+zoff+.05,.55]);}}
   // on its bed: the bed is drawn first and the pet on top of it, as one piece, so it can never slip under the bed
   if(bed){const bb=itemBoxes(bed).flatMap(b=>b.kids||[b]);
     if(!CATALOG[bed.id].bed)return[composite([...bb,mb],p.uid)];
@@ -1863,9 +1891,12 @@ function frame(t){if(!P)return;ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHid
   drawn=sortBoxes(boxes);
   drawn.forEach(b=>{if(b.ghost)ctx.globalAlpha=.6;drawBox(ctx,P,b,L);ctx.globalAlpha=1;});
   // floating Zzz and streak sparkles
-  ctx.save();ctx.font=`900 ${Math.round(P.tw*.32)}px Nunito, sans-serif`;ctx.textAlign="center";
-  ZZZ.forEach(([x,y,z],i)=>{for(let k=0;k<3;k++){const ph=((t*.5+k/3+i*.3)%1),[sx,sy]=pt(P,x,y,z+ph*.8);ctx.globalAlpha=Math.sin(ph*Math.PI)*.9;ctx.fillStyle="#FFFFFF";ctx.strokeStyle="rgba(20,25,45,.6)";ctx.lineWidth=3;
-    ctx.strokeText("z",sx+ph*P.tw*.3,sy);ctx.fillText("z",sx+ph*P.tw*.3,sy);}});
+  ctx.save();ctx.textAlign="center";
+  // each Zzz carries its own size (pets use smaller ones); letters grow a little as they rise, never below 9px
+  ZZZ.forEach(([x,y,z,sc=1],i)=>{for(let k=0;k<3;k++){const ph=((t*.5+k/3+i*.3)%1),[sx,sy]=pt(P,x,y,z+ph*.8*sc),fs=Math.max(9,P.tw*.32*sc*(.75+.35*ph));
+    ctx.font=`900 ${Math.round(fs)}px Nunito, sans-serif`;ctx.globalAlpha=Math.sin(ph*Math.PI)*.9;ctx.fillStyle="#FFFFFF";ctx.strokeStyle="rgba(20,25,45,.6)";ctx.lineWidth=Math.max(2,3*sc);
+    ctx.strokeText("z",sx+ph*P.tw*.3*sc,sy);ctx.fillText("z",sx+ph*P.tw*.3*sc,sy);}});
+  ctx.font=`900 ${Math.round(P.tw*.32)}px Nunito, sans-serif`;
   NOTES.forEach(([x,y,z],i)=>{for(let k=0;k<2;k++){const ph=((t*.35+k/2+i*.37)%1),[sx,sy]=pt(P,x,y,z+ph*1.1);ctx.globalAlpha=Math.sin(ph*Math.PI)*.85;ctx.fillStyle=["#F2B705","#FF6BB5"][k];ctx.strokeStyle="rgba(20,25,45,.5)";ctx.lineWidth=2.5;
     const xo=Math.sin(ph*6+k)*P.tw*.12;ctx.strokeText(k?"♫":"♪",sx+xo,sy);ctx.fillText(k?"♫":"♪",sx+xo,sy);}});
   ctx.globalAlpha=1;ctx.restore();
