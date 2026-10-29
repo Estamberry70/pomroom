@@ -2074,13 +2074,13 @@ function dragTo(sx,sy){const o=G&&G.off;let h;
 // two fingers: pinch to zoom and drag to pan (cancels any hold or drag the first finger started)
 const TOUCH=new Map();let PINCH=null;
 function pinchState(){const[a,b]=[...TOUCH.values()];return{d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,m:[(a[0]+b[0])/2,(a[1]+b[1])/2]};}
-// one finger / left button dragging the room turns it live (horizontal motion; a finger moving mostly up or down
-// scrolls the page instead); the right or middle button pans
+// one finger dragging the room sideways turns it live (a finger moving mostly up or down
+// scrolls the page instead); with a mouse the room turns only from the buttons
 function endRot(g){ROT.drag=false;cv.style.cursor="";if(performance.now()-g.rot[1]>90)ROT.v=0;}
 cv.addEventListener("pointerdown",e=>{const[sx,sy]=evtPos(e);ROT.v=0;
   if(e.pointerType==="touch"){TOUCH.set(e.pointerId,[sx,sy]);if(TOUCH.size===2){if(G){clearTimeout(G.timer);if(G.rot)endRot(G);G=null;}const s=pinchState();PINCH={...s,z0:CAM.z,o0:[CAM.ox,CAM.oy]};return;}}
   if(G||PINCH)return;
-  if(e.pointerType==="mouse"&&e.button!==0){G={id:e.pointerId,pan:[sx,sy]};cv.style.cursor="grabbing";try{cv.setPointerCapture(e.pointerId);}catch(e){}return;}
+  if(e.pointerType==="mouse"&&e.button!==0)return;
   G={id:e.pointerId,touch:e.pointerType!=="mouse",x0:sx,y0:sy,last:[sx,sy],item:null,timer:0,drag:false,moved:false};
   if(placing||ON.visit)return;
   const uid=hitItem(sx,sy);if(uid>0){const p=RM.placed.find(q=>q.uid===uid);if(p)G.item={p};}
@@ -2091,21 +2091,20 @@ cv.addEventListener("pointermove",e=>{const[sx,sy]=evtPos(e);
     CAM.z=z;CAM.ox=s.m[0]-(PINCH.m[0]-PINCH.o0[0])*k;CAM.oy=s.m[1]-(PINCH.m[1]-PINCH.o0[1])*k;clampCam();lastDraw=0;return;}}
   if(!G){if(placing&&e.pointerType==="mouse"){const h=hoverAt(sx,sy);if(h){const ch=JSON.stringify(h)!==JSON.stringify(hover);hover=h;if(ch)updateBar();}}return;}
   if(e.pointerId!==G.id)return;G.last=[sx,sy];
-  if(G.pan){CAM.ox+=sx-G.pan[0];CAM.oy+=sy-G.pan[1];G.pan=[sx,sy];clampCam();lastDraw=0;return;}
   // the room follows the pointer about as fast as its front corner moves on screen; the release speed keeps it spinning
   if(G.rot){const now=performance.now(),da=-(sx-G.rot[0])*2/(N*P.tw),dt=Math.max(4,now-G.rot[1])/1000;setTheta(ROT.th+da);
     ROT.v=clamp(ROT.v*.5+da/dt*.5,-6,6);G.rot=[sx,now];return;}
   if(G.drag){dragTo(sx,sy);return;}
   if(Math.hypot(sx-G.x0,sy-G.y0)<=TAP_PX)return;G.moved=true;
   if(placing||(!G.touch&&G.item))startDrag();
-  else if(!G.touch||Math.abs(sx-G.x0)>Math.abs(sy-G.y0)){clearTimeout(G.timer);G.rot=[G.x0,performance.now()];ROT.drag=true;ROT.to=null;ROT.v=0;
+  else if(G.touch&&Math.abs(sx-G.x0)>Math.abs(sy-G.y0)){clearTimeout(G.timer);G.rot=[G.x0,performance.now()];ROT.drag=true;ROT.to=null;ROT.v=0;
     cv.style.cursor="grabbing";try{cv.setPointerCapture(G.id);}catch(e){}}
-  else{clearTimeout(G.timer);G=null;}});  // a finger that moves up or down before the hold scrolls the page
+  else{clearTimeout(G.timer);G=null;}});  // a finger moving up or down scrolls the page; a mouse drag on empty space does nothing
 cv.addEventListener("pointerup",e=>{if(TOUCH.delete(e.pointerId)&&PINCH&&TOUCH.size<2){PINCH=null;return;}
-  if(!G||e.pointerId!==G.id)return;const g=G;G=null;clearTimeout(g.timer);if(g.pan){cv.style.cursor="";return;}if(g.rot){endRot(g);return;}
+  if(!G||e.pointerId!==G.id)return;const g=G;G=null;clearTimeout(g.timer);if(g.rot){endRot(g);return;}
   if(g.drag){if(placing&&hover)tryPlace(hover);return;}
   if(!g.moved){const[sx,sy]=evtPos(e);onTap(sx,sy,g.touch);}});
-cv.addEventListener("pointercancel",e=>{TOUCH.delete(e.pointerId);if(TOUCH.size<2)PINCH=null;if(G&&e.pointerId===G.id){clearTimeout(G.timer);if(G.pan)cv.style.cursor="";if(G.rot)endRot(G);G=null;}});
+cv.addEventListener("pointercancel",e=>{TOUCH.delete(e.pointerId);if(TOUCH.size<2)PINCH=null;if(G&&e.pointerId===G.id){clearTimeout(G.timer);if(G.rot)endRot(G);G=null;}});
 // mouse wheel: zoom towards the cursor
 cv.addEventListener("wheel",e=>{e.preventDefault();const[sx,sy]=evtPos(e);zoomAt(sx,sy,Math.exp(-e.deltaY*(e.deltaMode?.05:.0015)));},{passive:false});
 const Q=Math.PI/2,rotStep=d=>rotTo((ROT.to??Math.round(ROT.th/Q)*Q)+d*Q);
