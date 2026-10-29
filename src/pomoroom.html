@@ -977,21 +977,25 @@ function syncPets(){const ids=new Set();RM.placed.forEach(p=>{if(!CATALOG[p.id].
   for(const k of [...PETS.keys()])if(!ids.has(k))PETS.delete(k);}
 function figColors(){const f=S.fig;return{top:f.bata?"#F4F4F4":f.shirt,shirt:f.shirt,pants:f.pants,hair:f.hair,skin:f.skin,bata:f.bata,pelo:f.pelo||0,gafas:!!f.gafas};}
 // chibi head facing +x; o: blink, look. Rigid group: every box shares the same hz/hy offsets.
-function chibiHead(f,hx0,hy0,hz,o){const blink=o.blink,look=o.look||0,fx=hx0+.4,P2=[[hx0,hy0,hz,.4,.4,.34,f.skin,"n"]];
+function chibiHead(f,hx0,hy0,hz,o){const blink=o.blink,look=o.look||0,fx=hx0+.4,H=f.hair,st=f.pelo||0,P2=[[hx0,hy0,hz,.4,.4,st===3?.28:.34,f.skin,"n"]];
   const eh=blink?.016:.1,ez=hz+(blink?.19:.12);
   P2.push([fx,hy0+.07+look,ez,.008,.07,eh,"#1C1C22","n"],[fx,hy0+.26+look,ez,.008,.07,eh,"#1C1C22","n"]);
-  if(!blink)P2.push([fx,hy0+.075+look,ez+.055,.004,.025,.03,"#FFFFFF","n"],[fx,hy0+.265+look,ez+.055,.004,.025,.03,"#FFFFFF","n"]);
+  if(!blink)P2.push([fx+.008,hy0+.075+look,ez+.055,.004,.025,.03,"#FFFFFF","n"],[fx+.008,hy0+.265+look,ez+.055,.004,.025,.03,"#FFFFFF","n"]);
   P2.push([fx,hy0+.03,hz+.06,.004,.05,.03,"#F2A0A0","n"],[fx,hy0+.32,hz+.06,.004,.05,.03,"#F2A0A0","n"],[fx,hy0+.165,hz+.075,.005,.07,.014,"#1C1C22","n"]);
-  if(f.gafas){const g="#1C2230",ezF=hz+.105,fw=.012,fx2=fx+.002;
-    [hy0+.055,hy0+.245].forEach(e0=>{P2.push([fx2,e0,ezF,fw,.1,.012,g,"n"],[fx2,e0,ezF+.118,fw,.1,.012,g,"n"],[fx2,e0,ezF,fw,.012,.13,g,"n"],[fx2,e0+.088,ezF,fw,.012,.13,g,"n"]);});
-    P2.push([fx2,hy0+.15,ezF+.06,fw,.115,.012,g,"n"],[hx0+.22,hy0+.4,ezF+.06,.17,.006,.015,g,"n"],[hx0+.22,hy0-.006,ezF+.06,.17,.006,.015,g,"n"]);}
-  const H=f.hair,st=f.pelo||0;
-  if(st===1)P2.push([hx0+.01,hy0+.01,hz+.31,.4,.38,.05,H,"n"],[hx0-.005,hy0-.005,hz+.18,.06,.41,.13,H,"n"]);
-  else if(st===2)P2.push([hx0-.02,hy0-.02,hz+.34,.3,.44,.1,H,"n"],[hx0-.02,hy0-.02,hz+.1,.1,.44,.24,H,"n"],[hx0+.26,hy0+.02,hz+.34,.16,.36,.17,H,"n"]);
-  else if(st===3)P2.push([hx0-.03,hy0-.03,hz+.28,.46,.46,.17,H,"cn t1.02"],[hx0,hy0-.04,hz+.14,.1,.1,.18,H,"cn"],[hx0,hy0+.34,hz+.14,.1,.1,.18,H,"cn"],[hx0+.08,hy0+.08,hz+.44,.3,.3,.08,H,"cn t.8"]);
-  else if(st===4)P2.push([hx0-.02,hy0-.02,hz+.34,.44,.44,.12,H,"n"],[hx0-.02,hy0-.02,hz+.1,.1,.44,.24,H,"n"],[hx0-.02,hy0-.02,hz+.26,.16,.3,.08,H,"n"],[hx0+.36,hy0-.02,hz+.22,.06,.12,.14,H,"n"]);
-  else P2.push([hx0-.02,hy0-.02,hz+.34,.44,.44,.12,H,"n"],[hx0-.02,hy0-.02,hz+.1,.1,.44,.24,H,"n"],[hx0-.02,hy0-.02,hz+.26,.16,.44,.08,H,"n"],
-    [hx0+.36,hy0-.02,hz+.26,.06,.1,.1,H,"n"],[hx0+.36,hy0+.32,hz+.26,.06,.1,.1,H,"n"],[hx0+.12,hy0+.12,hz+.46,.16,.16,.07,H,"cn t.4"]);
+  if(f.gafas){const g="#1C2230",ezF=hz+.105,fw=.012,fx2=fx+.012;
+    [hy0+.055,hy0+.245].forEach(e0=>{P2.push([fx2,e0,ezF,fw,.1,.012,g,"n"],[fx2,e0,ezF+.118,fw,.1,.012,g,"n"],[fx2,e0,ezF+.012,fw,.012,.106,g,"n"],[fx2,e0+.088,ezF+.012,fw,.012,.106,g,"n"]);});
+    P2.push([fx2,hy0+.155,ezF+.06,fw,.09,.012,g,"n"],[hx0+.22,hy0+.4,ezF+.06,.17,.006,.015,g,"n"],[hx0+.22,hy0-.006,ezF+.06,.17,.006,.015,g,"n"]);}
+  // hair is built from slabs that stay outside the skull and each other, so the depth sort can always order them
+  if(st===1)P2.push([hx0+.01,hy0+.01,hz+.34,.4,.38,.02,H,"n"],[hx0+.4,hy0+.01,hz+.31,.01,.38,.03,H,"n"],
+    [hx0-.005,hy0,hz+.18,.005,.4,.13,H,"n"],[hx0-.005,hy0-.005,hz+.18,.06,.005,.13,H,"n"],[hx0-.005,hy0+.4,hz+.18,.06,.005,.13,H,"n"]);
+  else if(st===2)P2.push([hx0-.02,hy0-.02,hz+.34,.3,.44,.1,H,"n"],[hx0-.02,hy0,hz+.1,.02,.4,.24,H,"n"],[hx0-.02,hy0-.02,hz+.1,.1,.02,.24,H,"n"],[hx0-.02,hy0+.4,hz+.1,.1,.02,.24,H,"n"],[hx0+.28,hy0+.02,hz+.34,.14,.36,.17,H,"n"]);
+  else if(st===3)P2.push([hx0-.03,hy0-.03,hz+.28,.46,.46,.17,H,"cn t1.02"],[hx0,hy0-.1,hz+.1,.1,.1,.18,H,"cn"],[hx0,hy0+.4,hz+.1,.1,.1,.18,H,"cn"],[hx0+.08,hy0+.08,hz+.45,.3,.3,.08,H,"cn t.8"]);
+  else if(st===4)P2.push([hx0-.02,hy0-.02,hz+.34,.44,.44,.12,H,"n"],[hx0-.02,hy0,hz+.1,.02,.4,.24,H,"n"],[hx0-.02,hy0-.02,hz+.1,.1,.02,.16,H,"n"],[hx0-.02,hy0-.02,hz+.26,.16,.02,.08,H,"n"],[hx0-.02,hy0+.4,hz+.1,.1,.02,.24,H,"n"],
+    [hx0+.36,hy0-.02,hz+.22,.06,.02,.12,H,"n"],[hx0+.4,hy0,hz+.235,.02,.1,.105,H,"n"]);
+  else P2.push([hx0-.02,hy0-.02,hz+.34,.44,.44,.12,H,"n"],[hx0-.02,hy0,hz+.1,.02,.4,.24,H,"n"],
+    [hx0-.02,hy0-.02,hz+.1,.1,.02,.16,H,"n"],[hx0-.02,hy0-.02,hz+.26,.16,.02,.08,H,"n"],[hx0-.02,hy0+.4,hz+.1,.1,.02,.16,H,"n"],[hx0-.02,hy0+.4,hz+.26,.16,.02,.08,H,"n"],
+    [hx0+.36,hy0-.02,hz+.26,.06,.02,.08,H,"n"],[hx0+.4,hy0,hz+.26,.02,.08,.08,H,"n"],[hx0+.36,hy0+.4,hz+.26,.06,.02,.08,H,"n"],[hx0+.4,hy0+.32,hz+.26,.02,.08,.08,H,"n"],
+    [hx0+.12,hy0+.12,hz+.46,.16,.16,.07,H,"cn t.4"]);
   return P2;}
 // standing/walking chibi facing +x. o: s stride(-1..1), up (1 = both arms raised), blink, look, breath
 function figStand(f,o){const s=o.s||0,up=(o.up||0)>.5?1:0,br=o.breath||0,lift=k=>Math.max(0,k)*.045;
@@ -999,7 +1003,7 @@ function figStand(f,o){const s=o.s||0,up=(o.up||0)>.5?1:0,br=o.breath||0,lift=k=
     [.41,.37,.12,.18,.26,.2+br,f.top,"n"]];
   if(f.bata)P2.push([.595,.4,.2,.012,.2,.06,f.shirt,"n"]);
   const sw=s*.045;
-  if(up)P2.push([.43,.24,.3,.08,.05,.16,f.top,"n"],[.43,.71,.3,.08,.05,.16,f.top,"n"],[.435,.235,.46,.07,.07,.05,f.skin,"cn"],[.435,.705,.46,.07,.07,.05,f.skin,"cn"]);
+  if(up)P2.push([.43,.24,.3,.08,.05,.16,f.top,"n"],[.43,.71,.3,.08,.05,.16,f.top,"n"],[.435,.23,.46,.07,.07,.05,f.skin,"cn"],[.435,.705,.46,.07,.07,.05,f.skin,"cn"]);
   else P2.push([.43-sw,.31,.17,.08,.06,.13,f.top,"n"],[.43+sw,.63,.17,.08,.06,.13,f.top,"n"],[.435-sw,.3,.12,.07,.07,.05,f.skin,"cn"],[.435+sw,.63,.12,.07,.07,.05,f.skin,"cn"]);
   return P2.concat(chibiHead(f,.3+Math.abs(s)*.01,.3+s*.012,.32+br,o));}
 function figFloorSit(f,br,blink){const P2=[[.56,.4,0,.14,.09,.06,f.pants,"n"],[.56,.51,0,.14,.09,.06,f.pants,"n"],[.38,.38,0,.18,.24,.06,f.pants,"n"],
@@ -1008,19 +1012,21 @@ function figFloorSit(f,br,blink){const P2=[[.56,.4,0,.14,.09,.06,f.pants,"n"],[.
   P2.push([.41,.31,.06,.08,.06,.1,f.top,"n"],[.41,.63,.06,.08,.06,.1,f.top,"n"],[.42,.3,.02,.07,.07,.04,f.skin,"cn"],[.42,.63,.02,.07,.07,.04,f.skin,"cn"]);
   return P2.concat(chibiHead(f,.28,.3,.24+br,{blink}));}
 // chibi head turned to face -y (toward the desk); nod tilts it forward along y, never down into the torso
-function chibiHeadSeat(f,c,hz,nod,blink){const hy=.98-nod,fy=hy,P2=[[c-.2,hy,hz,.4,.4,.34,f.skin,"n"]];
+function chibiHeadSeat(f,c,hz,nod,blink){const hy=.98-nod,fy=hy,H=f.hair,st=f.pelo||0,P2=[[c-.2,hy,hz,.4,.4,st===3?.28:.34,f.skin,"n"]];
   const eh=blink?.016:.1,ez=hz+(blink?.19:.12);
   P2.push([c-.13,fy-.008,ez,.07,.008,eh,"#1C1C22","n"],[c+.06,fy-.008,ez,.07,.008,eh,"#1C1C22","n"]);
   if(!blink)P2.push([c-.125,fy-.012,ez+.055,.025,.004,.03,"#FFFFFF","n"],[c+.065,fy-.012,ez+.055,.025,.004,.03,"#FFFFFF","n"]);
   P2.push([c-.17,fy-.008,hz+.06,.05,.004,.03,"#F2A0A0","n"],[c+.12,fy-.008,hz+.06,.05,.004,.03,"#F2A0A0","n"],[c-.035,fy-.008,hz+.075,.07,.005,.014,"#1C1C22","n"]);
   if(f.gafas){const g="#1C2230",ezF=hz+.105;P2.push([c+.2,fy,ezF+.06,.006,.17,.015,g,"n"],[c-.206,fy,ezF+.06,.006,.17,.015,g,"n"]);}
-  const H=f.hair,st=f.pelo||0;
-  if(st===1)P2.push([c-.19,hy+.01,hz+.31,.38,.38,.05,H,"n"],[c-.19,hy+.35,hz+.18,.38,.05,.13,H,"n"]);
-  else if(st===2)P2.push([c-.22,hy+.12,hz+.34,.44,.3,.1,H,"n"],[c-.22,hy+.3,hz+.1,.44,.1,.24,H,"n"],[c-.18,hy-.01,hz+.34,.36,.13,.17,H,"n"]);
-  else if(st===3)P2.push([c-.23,hy-.03,hz+.28,.46,.46,.17,H,"cn t1.02"],[c-.26,hy+.15,hz+.14,.1,.1,.18,H,"cn"],[c+.16,hy+.15,hz+.14,.1,.1,.18,H,"cn"],[c-.15,hy+.08,hz+.44,.3,.3,.08,H,"cn t.8"]);
-  else if(st===4)P2.push([c-.22,hy-.02,hz+.34,.44,.44,.12,H,"n"],[c-.22,hy+.3,hz+.1,.44,.1,.24,H,"n"],[c-.22,hy+.24,hz+.26,.3,.16,.08,H,"n"],[c-.22,hy-.02,hz+.22,.12,.06,.14,H,"n"]);
-  else P2.push([c-.22,hy-.02,hz+.34,.44,.44,.12,H,"n"],[c-.22,hy+.3,hz+.1,.44,.1,.24,H,"n"],[c-.22,hy+.24,hz+.26,.44,.16,.08,H,"n"],
-    [c-.26,hy+.13,hz+.26,.06,.1,.1,H,"n"],[c+.2,hy+.13,hz+.26,.06,.1,.1,H,"n"],[c-.08,hy+.12,hz+.46,.16,.16,.07,H,"cn t.4"]);
+  // same non-overlapping slabs as chibiHead; the back slab starts above the chair back's top trim
+  if(st===1)P2.push([c-.19,hy+.01,hz+.34,.38,.38,.02,H,"n"],[c-.19,hy+.4,hz+.18,.38,.005,.13,H,"n"]);
+  else if(st===2)P2.push([c-.22,hy+.12,hz+.34,.44,.3,.1,H,"n"],[c-.2,hy+.4,hz+.14,.4,.02,.2,H,"n"],[c-.22,hy+.3,hz+.1,.02,.12,.24,H,"n"],[c+.2,hy+.3,hz+.1,.02,.12,.24,H,"n"],[c-.18,hy-.01,hz+.34,.36,.13,.17,H,"n"]);
+  else if(st===3)P2.push([c-.23,hy-.03,hz+.28,.46,.46,.17,H,"cn t1.02"],[c-.3,hy+.17,hz+.1,.1,.1,.18,H,"cn"],[c+.2,hy+.17,hz+.1,.1,.1,.18,H,"cn"],[c-.15,hy+.08,hz+.45,.3,.3,.08,H,"cn t.8"]);
+  else if(st===4)P2.push([c-.22,hy-.02,hz+.34,.44,.44,.12,H,"n"],[c-.2,hy+.4,hz+.14,.4,.02,.2,H,"n"],[c-.22,hy+.3,hz+.1,.02,.12,.16,H,"n"],[c-.22,hy+.24,hz+.26,.02,.18,.08,H,"n"],[c+.2,hy+.3,hz+.1,.02,.12,.24,H,"n"],
+    [c-.22,hy-.02,hz+.22,.12,.02,.12,H,"n"],[c-.22,hy,hz+.22,.02,.04,.12,H,"n"]);
+  else P2.push([c-.22,hy-.02,hz+.34,.44,.44,.12,H,"n"],[c-.2,hy+.4,hz+.14,.4,.02,.2,H,"n"],
+    [c-.22,hy+.3,hz+.1,.02,.12,.16,H,"n"],[c-.22,hy+.24,hz+.26,.02,.18,.08,H,"n"],[c+.2,hy+.3,hz+.1,.02,.12,.16,H,"n"],[c+.2,hy+.24,hz+.26,.02,.18,.08,H,"n"],
+    [c-.26,hy+.13,hz+.26,.06,.1,.08,H,"n"],[c+.2,hy+.13,hz+.26,.06,.1,.08,H,"n"],[c-.08,hy+.12,hz+.46,.16,.16,.07,H,"cn t.4"]);
   return P2;}
 // seated at the desk: dangling little legs that swing, arms resting on the desktop typing
 function figSeat(f,cfg,t){const c=cfg.seat,ch=cfg.chair,acc=cfg.accent||ch,
@@ -1031,8 +1037,8 @@ function figSeat(f,cfg,t){const c=cfg.seat,ch=cfg.chair,acc=cfg.accent||ch,
     [c-.13,1.06,.42,.1,.24,.09,f.pants,"n"],[c+.03,1.06,.42,.1,.24,.09,f.pants,"n"],
     [c-.13,1.03+swing,.27,.1,.08,.15,f.pants,"n"],[c+.03,1.03-swing,.27,.1,.08,.15,f.pants,"n"],
     [c-.09,1.12,.51,.18,.26,.2+br,f.top,"n"]];
-  if(f.bata)P2.push([c-.1,1.1,.51,.2,.02,.2,"#F4F4F4","n"]);
-  P2.push([c-.16,.9,.76+j,.07,.24,.05,f.top,"n"],[c+.09,.9,.76+j2,.07,.24,.05,f.top,"n"],
+  if(f.bata)P2.push([c-.1,1.1,.51,.2,.02,.2+br,"#F4F4F4","n"]);
+  P2.push([c-.16,.9,.76+j,.07,.05,.05,f.top,"n"],[c+.09,.9,.76+j2,.07,.05,.05,f.top,"n"],
     [c-.155,.84,.8+j,.06,.06,.04,f.skin,"cn"],[c+.095,.84,.8+j2,.06,.06,.04,f.skin,"cn"]);
   return P2.concat(chibiHeadSeat(f,c,.71+br,nod,blink));}
 let ZZZ=[];
