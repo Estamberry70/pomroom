@@ -14,7 +14,7 @@ HEAD = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Pomodoro con una habitacion 3D que decoras con lo que ganas estudiando.">
-<meta name="theme-color" content="#E8762B">
+<meta name="theme-color" content="#168F79">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,8 +50,8 @@ if("serviceWorker" in navigator)addEventListener("load",()=>{navigator.serviceWo
     "scope": "./",
     "display": "standalone",
     "orientation": "any",
-    "background_color": "#11141B",
-    "theme_color": "#E8762B",
+    "background_color": "#0C181C",
+    "theme_color": "#168F79",
     "lang": "es",
     "icons": [
         {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
