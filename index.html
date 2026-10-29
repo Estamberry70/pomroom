@@ -172,7 +172,43 @@ section > h2:first-child{margin-top:2px}
 .modal .quote{font-size:17px;color:var(--ink);font-weight:700;line-height:1.4}
 .modal .big{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-size:40px}
 .modal img{width:100%;border-radius:12px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Focus mode: during a focus session only the room stays, centred and sized to fit the screen. */
+.focus-hud{display:none;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);align-items:center;gap:12px;background:rgba(18,22,38,.78);color:#F4F6FB;border-radius:16px;padding:8px 8px 8px 16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);max-width:calc(100% - 24px)}
+.hud-t{display:grid;line-height:1.1;min-width:0}
+.hud-t strong{font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
+.hud-t small{font-size:12px;font-weight:700;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.focus-hud .btn{flex:none}
+body.focusing header,body.focusing .toolbar,body.focusing .panel,body.focusing .focus-badge{display:none!important}
+body.focusing .app{grid-template-columns:1fr;max-width:none;min-height:calc(100vh - 40px);min-height:calc(100dvh - 40px);align-content:center}
+body.focusing .roomcol{position:static;animation:focusIn .45s ease-out}
+body.focusing .room{width:min(100%,calc((100vh - 60px) / var(--room-ar,1)));width:min(100%,calc((100dvh - 60px) / var(--room-ar,1)));margin-inline:auto}
+body.focusing .focus-hud{display:flex}
+@keyframes focusIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+/* Phones */
+@media (max-width:480px){
+  body{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  .app{gap:12px}
+  h1{font-size:24px}
+  .coins{font-size:16px;padding:4px 12px 4px 6px}
+  .room{border-radius:16px}
+  .toolbar{gap:6px}
+  .pill{font-size:12px;padding:6px 10px}
+  .panel{padding:12px;border-radius:16px}
+  .tabs{gap:2px;margin-bottom:12px}
+  .tabs button{font-size:12px;padding:9px 0}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px}
+  .card canvas{width:96px;height:80px}
+  .swatches{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+  .modebar{left:6px;right:6px;bottom:6px;max-height:55%}
+  .kpi b{font-size:22px}
+  .modal{padding:18px}
+  .hud-t strong{font-size:26px}
+}
+/* iOS zooms into inputs under 16px */
+@media (pointer:coarse){input[type=number],input[type=text],textarea,select{font-size:16px!important}}
+.overlay{padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px))}
+.modal{max-height:90vh;max-height:90dvh}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 <div class="app">
@@ -185,6 +221,7 @@ section > h2:first-child{margin-top:2px}
     <div class="room" id="roomWrap">
       <div class="scroller" id="scroller"><canvas id="room" aria-label="Tu habitación"></canvas></div>
       <div class="focus-badge" id="focusBadge" hidden>Enfocando…</div>
+      <div class="focus-hud" id="focusHud"><div class="hud-t"><strong id="hudClock">25:00</strong><small id="hudSub"></small></div><button class="btn danger sm" id="hudBtn">Rendirse</button></div>
       <div class="visit-banner" id="visitBanner" hidden></div>
       <div class="modebar" id="modebar" hidden></div>
     </div>
@@ -715,11 +752,14 @@ const maxH=id=>Math.max(...CATALOG[id].parts.map(a=>a[2]+a[5]));
 const cv=document.getElementById("room");let ctx=cv.getContext("2d");let P,drawn=[];
 let placing=null, selUid=null, selW=null, hover=null, SEATQ=null;
 const STATIC={key:"",cv:document.createElement("canvas")};
-let ZOOM=1;const scroller=document.getElementById("scroller");
+let ZOOM=1;const scroller=document.getElementById("scroller"),ROOMBG=document.getElementById("roomWrap"),COARSE=matchMedia("(pointer: coarse)").matches;
 function layout(){const base=scroller.clientWidth||360,W=base*ZOOM,tw=W/(N+.68),th=tw/2,u=tw*.5;
-  const oy=WALL_H*u+tw*.2,H=oy+N*th+.35*u+tw*.2;let dpr=Math.min(3,Math.max(2,window.devicePixelRatio||1));dpr=Math.min(dpr,5200/W,5200/H);
+  const oy=WALL_H*u+tw*.2,H=oy+N*th+.35*u+tw*.2;
+  // phones: cap at 2x (3x screens cost ~2.25x the pixels for no visible gain); desktops keep at least 1.5x for crisp edges
+  let dpr=Math.min(2,Math.max(COARSE?1:1.5,window.devicePixelRatio||1));dpr=Math.min(dpr,5200/W,5200/H);
   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+"px";cv.style.height=H+"px";scroller.style.height=(H/ZOOM)+"px";ctx.setTransform(dpr,0,0,dpr,0,0);
-  STATIC.cv.width=cv.width;STATIC.cv.height=cv.height;STATIC.key="";P={ox:W/2,oy,tw,th,u,dpr};}
+  ROOMBG.style.setProperty("--room-ar",(H/W).toFixed(4));
+  STATIC.cv.width=BACK.cv.width=cv.width;STATIC.cv.height=BACK.cv.height=cv.height;STATIC.key="";P={ox:W/2,oy,tw,th,u,dpr,H};}
 const PLANE={back:()=>ctx.transform(P.tw/2,P.th/2,0,-P.u,P.ox,P.oy),left:()=>ctx.transform(-P.tw/2,P.th/2,0,-P.u,P.ox,P.oy),floor:()=>ctx.transform(P.tw/2,P.th/2,-P.tw/2,P.th/2,P.ox,P.oy)};
 function inPlane(k,fn,shift){ctx.save();if(shift)ctx.translate(shift[0],shift[1]);PLANE[k]();fn();ctx.restore();}
 function grad(x0,y0,x1,y1,stops){const g=ctx.createLinearGradient(x0,y0,x1,y1);stops.forEach(([o,c])=>g.addColorStop(o,c));return g;}
@@ -763,14 +803,20 @@ function drawCity(w){const R=rng(w.seed),{a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day,dus
       ctx.beginPath();ctx.moveTo(tx-.02,ty+.18);ctx.lineTo(tx+.0575,ty+.25);ctx.lineTo(tx+.135,ty+.18);ctx.fill();}
     x+=bw+.02;}
   if(wx==="niebla"){ctx.fillStyle=grad(0,c,0,e,[[0,`rgba(215,222,232,${.75-.2*(1-day)})`],[1,"rgba(215,222,232,.35)"]]);ctx.fillRect(a,c,W,H);}
-  ctx.fillStyle=grad(0,e-.22,0,e,[[0,"rgba(0,0,0,0)"],[1,"rgba(0,0,0,.5)"]]);ctx.fillRect(a,e-.22,W,.22);
-  ctx.fillStyle=grad(a,0,a+.14,0,[[0,"rgba(0,0,0,.4)"],[1,"rgba(0,0,0,0)"]]);ctx.fillRect(a,c,.14,H);
-  ctx.fillStyle=`rgba(220,235,255,${.06+.08*day})`;ctx.beginPath();ctx.moveTo(a+.25,c);ctx.lineTo(a+.65,c);ctx.lineTo(a+1.25,e);ctx.lineTo(a+.85,e);ctx.fill();
-  ctx.beginPath();ctx.moveTo(a+.75,c);ctx.lineTo(a+.85,c);ctx.lineTo(a+1.45,e);ctx.lineTo(a+1.35,e);ctx.fill();
+  if(!w.bg){ctx.fillStyle=grad(0,e-.22,0,e,[[0,"rgba(0,0,0,0)"],[1,"rgba(0,0,0,.5)"]]);ctx.fillRect(a,e-.22,W,.22);
+    ctx.fillStyle=grad(a,0,a+.14,0,[[0,"rgba(0,0,0,.4)"],[1,"rgba(0,0,0,0)"]]);ctx.fillRect(a,c,.14,H);
+    ctx.fillStyle=`rgba(220,235,255,${.06+.08*day})`;ctx.beginPath();ctx.moveTo(a+.25,c);ctx.lineTo(a+.65,c);ctx.lineTo(a+1.25,e);ctx.lineTo(a+.85,e);ctx.fill();
+    ctx.beginPath();ctx.moveTo(a+.75,c);ctx.lineTo(a+.85,c);ctx.lineTo(a+1.45,e);ctx.lineTo(a+1.35,e);ctx.fill();}
   ctx.restore();}
+// backdrop: the same city as the back window, stretched over the whole canvas in screen space (y up, window-sized units)
+const BACK={cv:document.createElement("canvas")};
+function backdropWin(){const Wp=P.ox*2,Hp=P.H,s=Hp/1.7;return{a:0,b:Wp/s,c:0,e:Hp/s,seed:7,sky:true,bg:true,s,Hp};}
+function inBackdrop(fn){const w=backdropWin();ctx.save();ctx.transform(w.s,0,0,-w.s,0,w.Hp);fn();ctx.restore();}
+function drawBackdrop(){const sc=ctx;ctx=BACK.cv.getContext("2d");ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,BACK.cv.width,BACK.cv.height);ctx.setTransform(P.dpr,0,0,P.dpr,0,0);
+  try{inBackdrop(()=>drawCity(backdropWin()));}finally{ctx=sc;}}
 let FLASH=0,nextFlash=0;
-function drawRain(w,t){const {a,b,c,e}=w,W=b-a,H=e-c,wx=ENV.wx;if(wx!=="lluvia"&&wx!=="tormenta"&&!FLASH)return;
-  inPlane(w.wall,()=>{ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
+function drawRain(w,t,into){const {a,b,c,e}=w,W=b-a,H=e-c,wx=ENV.wx;if(wx!=="lluvia"&&wx!=="tormenta"&&!FLASH)return;
+  (into||(fn=>inPlane(w.wall,fn)))(()=>{ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
     if(wx==="lluvia"||wx==="tormenta"){const R=rng(w.seed+99),n=wx==="tormenta"?70:45,sp=wx==="tormenta"?3.2:2.4;
       ctx.fillStyle="rgba(200,215,240,.45)";
       for(let i=0;i<n;i++){const x=a+R()*W,off=R()*H,yy=e-((t*sp+off)%H)-.12,sk=wx==="tormenta"?.04:.02;
@@ -1173,16 +1219,16 @@ function seatHide(){if(figMode()!=="focus")return null;
   for(let i=0;i<(desk.r||0);i++){const nx=D2-ly-1,ny=lx;lx=nx;ly=ny;const sw=W2;W2=D2;D2=sw;}
   const sx=desk.x+lx,sy=desk.y+ly;if(sx<0||sy<0||sx>=N||sy>=N)return null;
   return RM.placed.find(p=>!p.z&&["silla","sillaGamer","sillaOficina","puf"].includes(p.id)&&p.x===sx&&p.y===sy)||null;}
-const ROOMBG=document.getElementById("roomWrap");
 function softShadow(x,y,r,z=0){const [cx,cy]=pt(P,x,y,z),g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*P.tw*.6);g.addColorStop(0,"rgba(0,0,12,.4)");g.addColorStop(1,"rgba(0,0,12,0)");
   ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,r*P.tw*.6,r*P.th*.6,0,0,7);ctx.fill();}
 function frame(t){if(!P)return;ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHide();
   AMB=lerp(lerp([.5,.5,.68],[1.02,1,.97],ENV.day),[.88,.68,.62],ENV.dusk*.7);if(ENV.wx==="lluvia"||ENV.wx==="tormenta")AMB=AMB.map(v=>v*.82);if(ENV.wx==="niebla")AMB=AMB.map(v=>v*.92);
-  ROOMBG.style.background=`radial-gradient(ellipse at 50% 35%,${css(envc("#252B52","#D5E6F5","#7A5A86"),ENV.wx==="despejado"?1:.85)},${css(envc("#0B0E1E","#9CB5D3","#2A2040"),ENV.wx==="despejado"?1:.8)} 75%)`;
   if(ENV.wx==="tormenta"&&!REDUCED){if(t>nextFlash){FLASH=1;nextFlash=t+6+Math.random()*9;}FLASH=Math.max(0,FLASH-.06);if(FLASH>.3&&FLASH<.5&&Math.random()<.3)FLASH=.9;}else FLASH=0;
   FXDIM=clamp((1-(AMB[0]+AMB[1]+AMB[2])/3)*.75,0,.45);const lights=buildLights(),L={amb:AMB,lights},key=staticKey();
-  if(key!==STATIC.key){drawStatic(lights);STATIC.key=key;}
-  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(STATIC.cv,0,0);ctx.restore();
+  if(key!==STATIC.key){drawBackdrop();drawStatic(lights);STATIC.key=key;}
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(BACK.cv,0,0);ctx.restore();
+  drawRain(backdropWin(),t,inBackdrop);
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(STATIC.cv,0,0);ctx.restore();
   WINS.forEach(w=>{drawRain(w,t);sortBoxes(frameBoxes(w)).forEach(b=>drawBox(ctx,P,b,L));});
   RM.walls.forEach(it=>{if(placing&&placing.moveUid===it.uid)return;drawWallItem(it,L,selW===it.uid?"sel":null);});
   if(placing&&placing.kind==="wall"&&hover){const g={uid:-1,id:placing.id,v:placing.v,txt:placing.txt,...hover};drawWallItem(g,L,wallFits(placing.id,hover.wall,hover.s,hover.z,placing.moveUid)?"ghost":"bad");}
@@ -1212,9 +1258,11 @@ function frame(t){if(!P)return;ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHid
       const g=ctx.createRadialGradient(sx,sy,0,sx,sy,r*2.5);g.addColorStop(0,`rgba(255,220,120,${a})`);g.addColorStop(1,"rgba(255,220,120,0)");ctx.fillStyle=g;ctx.fillRect(sx-r*2.5,sy-r*2.5,r*5,r*5);}ctx.restore();}
   drawTags();
   if(FLASH>0){ctx.save();ctx.globalCompositeOperation="lighter";ctx.fillStyle=`rgba(190,205,255,${FLASH*.18})`;ctx.setTransform(1,0,0,1,0,0);ctx.fillRect(0,0,cv.width,cv.height);ctx.restore();}}
-let lastT=performance.now(),lastDraw=0;
+let lastT=performance.now(),lastDraw=0,roomVisible=true;
+const FRAME_MS=REDUCED?500:COARSE?66:45;
+if(window.IntersectionObserver)new IntersectionObserver(es=>{roomVisible=es[es.length-1].isIntersecting;}).observe(ROOMBG);
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.1,(now-lastT)/1000);lastT=now;if(document.hidden)return;
-  updateEntities(dt,now/1000);if(now-lastDraw<(REDUCED?500:45))return;lastDraw=now;try{frame(now/1000);}catch(e){console.error(e);}}
+  updateEntities(dt,now/1000);if(!roomVisible||now-lastDraw<FRAME_MS)return;lastDraw=now;try{frame(now/1000);}catch(e){console.error(e);}}
 
 // ================= interaction =================
 function inPoly(px,py,pts){let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const[xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>py)!==(yj>py)&&px<(xj-xi)*(py-yi)/(yj-yi)+xi)c=!c;}return c;}
@@ -1371,7 +1419,15 @@ function tick(){const arc=document.getElementById("arc"),clock=document.getEleme
     else if(Date.now()-giveUpArmed>=3000){startBtn.textContent="Rendirse";startBtn.className="btn danger";}
     badge.hidden=false;badge.textContent=ses.kind==="focus"?"Enfocando…":"Descansando…";badge.className="focus-badge"+(ses.kind==="focus"?"":" brk");}
   else{clock.textContent=String(S.dur).padStart(2,"0")+":00";sub.textContent="listo para empezar";arc.style.strokeDashoffset=0;arc.style.stroke="var(--red)";
-    ph.textContent="Enfoque";ph.className="phase";startBtn.textContent="Empezar a enfocar";startBtn.className="btn";badge.hidden=true;}}
+    ph.textContent="Enfoque";ph.className="phase";startBtn.textContent="Empezar a enfocar";startBtn.className="btn";badge.hidden=true;}
+  setFocusing(ses?.kind==="focus");
+  if(FOCUSING){hudClock.textContent=clock.textContent;hudSub.textContent=sub.textContent;hudBtn.textContent=startBtn.textContent;}}
+// focus mode: while a focus session runs, only the room stays on screen (CSS hides the rest and resizes the room)
+let FOCUSING=false;const hudClock=document.getElementById("hudClock"),hudSub=document.getElementById("hudSub"),hudBtn=document.getElementById("hudBtn");
+function setFocusing(on){if(on===FOCUSING)return;FOCUSING=on;document.body.classList.toggle("focusing",on);
+  if(on){placing=null;selUid=null;selW=null;hover=null;updateBar();}
+  if(P)layout();window.scrollTo(0,0);}
+hudBtn.onclick=async()=>{await startBtn.onclick();tick();};
 function finishFocus(){const ses=S.session,m=ses.dur,c=reward(m);S.session=null;S.coins+=FREE?0:c;S.stats.sessions++;S.stats.minutes+=m;S.log.push({t:Date.now(),m,tag:ses.tag||"General"});
   if(S.log.length>5000)S.log=S.log.slice(-5000);S.cycle=(S.cycle||0)+1;save();try{wake?.release();}catch(e){}chime();
   const before=new Set(achDone());STATS=computeStats();const newA=ACHS.filter(a=>achieved(a)&&!before.has(a.id));
@@ -1666,7 +1722,10 @@ function roomPanel(){
     try{navigator.clipboard.writeText(t).then(()=>toast("Código copiado"),()=>toast("Copia el código a mano: "+t));}catch(e){toast("Copia el código a mano: "+t);}};}
 
 if(FREE)document.querySelector(".coins").hidden=true;
-window.addEventListener("resize",()=>{layout();});
+// relayout only when the room's width changes: on phones the URL bar showing/hiding fires height-only resizes
+let relayout=0;
+const onResize=()=>{if((P&&scroller.clientWidth===P.ox*2/ZOOM)||relayout)return;relayout=requestAnimationFrame(()=>{relayout=0;layout();});};
+if(window.ResizeObserver)new ResizeObserver(onResize).observe(scroller);else window.addEventListener("resize",onResize);
 document.getElementById("roomBtn").onclick=()=>roomPanel();
 renderRoomSel();renderChips();refresh();layout();tick();initOnline();
 setInterval(tick,250);setInterval(()=>{STATS=computeStats();},60000);

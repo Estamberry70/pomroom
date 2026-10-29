@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Genera la version instalable (PWA) de PomoRoom a partir de pomoroom.html."""
+"""Genera la version instalable (PWA) de PomoRoom a partir de src/pomoroom.html."""
 import json, pathlib, re, time
 
 ROOT = pathlib.Path(__file__).parent
-DIST = ROOT / "dist"
-DIST.mkdir(exist_ok=True)
-body = (ROOT / "pomoroom.html").read_text()
+# GitHub Pages sirve la raiz del repo: index.html, sw.js y el manifest van ahi.
+DIST = ROOT
+body = (ROOT / "src" / "pomoroom.html").read_text(encoding="utf-8")
 VERSION = time.strftime("%Y.%m.%d.%H%M")
 
 HEAD = """<!doctype html>
@@ -40,7 +40,7 @@ if("serviceWorker" in navigator)addEventListener("load",()=>{navigator.serviceWo
 </html>
 """
 
-(DIST / "index.html").write_text(HEAD + body + FOOT)
+(DIST / "index.html").write_text(HEAD + body + FOOT, encoding="utf-8")
 
 (DIST / "manifest.webmanifest").write_text(json.dumps({
     "name": "PomoRoom",
@@ -58,7 +58,7 @@ if("serviceWorker" in navigator)addEventListener("load",()=>{navigator.serviceWo
         {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
         {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
     ],
-}, indent=2, ensure_ascii=False))
+}, indent=2, ensure_ascii=False), encoding="utf-8")
 
 (DIST / "sw.js").write_text("""// PomoRoom service worker — app shell cache
 const V = "pomoroom-%s";
@@ -104,7 +104,7 @@ self.addEventListener("fetch", e => {
     return r;
   })));
 });
-""" % VERSION)
+""" % VERSION, encoding="utf-8")
 
 (DIST / ".nojekyll").write_text("")
 print("build", VERSION, sorted(f.name for f in DIST.iterdir()))
