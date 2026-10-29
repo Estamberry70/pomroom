@@ -803,20 +803,39 @@ function drawCity(w){const R=rng(w.seed),{a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day,dus
       ctx.beginPath();ctx.moveTo(tx-.02,ty+.18);ctx.lineTo(tx+.0575,ty+.25);ctx.lineTo(tx+.135,ty+.18);ctx.fill();}
     x+=bw+.02;}
   if(wx==="niebla"){ctx.fillStyle=grad(0,c,0,e,[[0,`rgba(215,222,232,${.75-.2*(1-day)})`],[1,"rgba(215,222,232,.35)"]]);ctx.fillRect(a,c,W,H);}
-  if(!w.bg){ctx.fillStyle=grad(0,e-.22,0,e,[[0,"rgba(0,0,0,0)"],[1,"rgba(0,0,0,.5)"]]);ctx.fillRect(a,e-.22,W,.22);
-    ctx.fillStyle=grad(a,0,a+.14,0,[[0,"rgba(0,0,0,.4)"],[1,"rgba(0,0,0,0)"]]);ctx.fillRect(a,c,.14,H);
-    ctx.fillStyle=`rgba(220,235,255,${.06+.08*day})`;ctx.beginPath();ctx.moveTo(a+.25,c);ctx.lineTo(a+.65,c);ctx.lineTo(a+1.25,e);ctx.lineTo(a+.85,e);ctx.fill();
-    ctx.beginPath();ctx.moveTo(a+.75,c);ctx.lineTo(a+.85,c);ctx.lineTo(a+1.45,e);ctx.lineTo(a+1.35,e);ctx.fill();}
   ctx.restore();}
-// backdrop: the same city as the back window, stretched over the whole canvas in screen space (y up, window-sized units)
+// windows are real holes in the static layer: the backdrop city (and its rain) shows through, then glass shading goes on top
+function cutWindow(w){const {a,b,c,e}=w,W=b-a,H=e-c,day=ENV.day;inPlane(w.wall,()=>{ctx.save();
+  ctx.globalCompositeOperation="destination-out";ctx.fillStyle="#000";ctx.fillRect(a,c,W,H);ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle=`rgba(190,210,240,${.05+.05*day})`;ctx.fillRect(a,c,W,H);
+  ctx.fillStyle=grad(0,e-.22,0,e,[[0,"rgba(0,0,0,0)"],[1,"rgba(0,0,0,.5)"]]);ctx.fillRect(a,e-.22,W,.22);
+  ctx.fillStyle=grad(a,0,a+.14,0,[[0,"rgba(0,0,0,.4)"],[1,"rgba(0,0,0,0)"]]);ctx.fillRect(a,c,.14,H);
+  ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
+  ctx.fillStyle=`rgba(220,235,255,${.06+.08*day})`;ctx.beginPath();ctx.moveTo(a+.25,c);ctx.lineTo(a+.65,c);ctx.lineTo(a+1.25,e);ctx.lineTo(a+.85,e);ctx.fill();
+  ctx.beginPath();ctx.moveTo(a+.75,c);ctx.lineTo(a+.85,c);ctx.lineTo(a+1.45,e);ctx.lineTo(a+1.35,e);ctx.fill();ctx.restore();});}
+// backdrop: one city stretched over the whole canvas in screen space (y up, window-sized units)
 const BACK={cv:document.createElement("canvas")};
-function backdropWin(){const Wp=P.ox*2,Hp=P.H,s=Hp/1.7;return{a:0,b:Wp/s,c:0,e:Hp/s,seed:7,sky:true,bg:true,s,Hp};}
+function backdropWin(){const Wp=P.ox*2,Hp=P.H,s=Hp/1.7;return{a:0,b:Wp/s,c:0,e:Hp/s,seed:7,sky:true,s,Hp};}
+// the rest of the tower under the room, so it stands on something: storeys with neighbours' windows, fading into haze
+function drawTower(Lamb){const deep=P.H/P.u+2,st=WALL_H+.35,R=rng(301),day=ENV.day,lit=.55*(1-day*.9),len=N+.3;
+  drawBox(ctx,P,{x:-.3,y:-.3,z:-deep,w:len,d:len,h:deep-.35,c:"#A9A39A",stud:0},Lamb);
+  const glass=css(envc("#1B2140","#9DB4D2","#5E4F78")),n=Math.max(1,Math.floor(len/2.4)),gap=len/n,ww=Math.min(1.6,gap-.5),
+    haze=css(envc("#0B0E22","#A9BCD6","#2E2448"));
+  const face=fn=>{inPlane("back",fn,[-P.tw/2*N,P.th/2*N]);inPlane("left",fn,[P.tw/2*N,P.th/2*N]);};
+  face(()=>{for(let k=1;k*st<deep;k++){const top=-.35-st*(k-1),bot=top-st;
+      ctx.fillStyle="rgba(0,0,0,.16)";ctx.fillRect(-.3,top-.3,len,.3);ctx.fillStyle="rgba(255,255,255,.08)";ctx.fillRect(-.3,top-.34,len,.04);
+      for(let i=0;i<n;i++){const s=-.3+gap*i+(gap-ww)/2,z0=bot+.95,z1=bot+2.4,on=R()<lit;
+        ctx.fillStyle=on?(R()<.7?"#FFD27A":"#FFF0C4"):glass;ctx.fillRect(s,z0,ww,z1-z0);
+        ctx.fillStyle="rgba(0,0,0,.25)";ctx.fillRect(s+ww/2-.02,z0,.04,z1-z0);ctx.fillRect(s,z0,ww,.05);
+        ctx.fillStyle="#B9B4AA";ctx.fillRect(s-.06,z0-.1,ww+.12,.1);}}
+    ctx.fillStyle=grad(0,-.35,0,-.35-st*2.2,[[0,"rgba(0,0,0,0)"],[1,haze]]);ctx.globalAlpha=.75;ctx.fillRect(-.3,-deep,len,deep-.35);ctx.globalAlpha=1;});}
 function inBackdrop(fn){const w=backdropWin();ctx.save();ctx.transform(w.s,0,0,-w.s,0,w.Hp);fn();ctx.restore();}
 function drawBackdrop(){const sc=ctx;ctx=BACK.cv.getContext("2d");ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,BACK.cv.width,BACK.cv.height);ctx.setTransform(P.dpr,0,0,P.dpr,0,0);
   try{inBackdrop(()=>drawCity(backdropWin()));}finally{ctx=sc;}}
 let FLASH=0,nextFlash=0;
-function drawRain(w,t,into){const {a,b,c,e}=w,W=b-a,H=e-c,wx=ENV.wx;if(wx!=="lluvia"&&wx!=="tormenta"&&!FLASH)return;
-  (into||(fn=>inPlane(w.wall,fn)))(()=>{ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
+// rain falls on the backdrop only; the windows are holes, so they show it too
+function drawRain(t){const w=backdropWin(),{a,b,c,e}=w,W=b-a,H=e-c,wx=ENV.wx;if(wx!=="lluvia"&&wx!=="tormenta"&&!FLASH)return;
+  inBackdrop(()=>{ctx.save();ctx.beginPath();ctx.rect(a,c,W,H);ctx.clip();
     if(wx==="lluvia"||wx==="tormenta"){const R=rng(w.seed+99),n=wx==="tormenta"?70:45,sp=wx==="tormenta"?3.2:2.4;
       ctx.fillStyle="rgba(200,215,240,.45)";
       for(let i=0;i<n;i++){const x=a+R()*W,off=R()*H,yy=e-((t*sp+off)%H)-.12,sk=wx==="tormenta"?.04:.02;
@@ -1188,6 +1207,7 @@ function staticKey(){const env=[Math.round(ENV.day*30),Math.round(ENV.dusk*30),E
     RM.walls.filter(w=>!(placing&&placing.moveUid===w.uid)).map(w=>[w.id,w.wall,w.s,w.z,w.v])]);}
 function drawStatic(lights){const sc=ctx;ctx=STATIC.cv.getContext("2d");ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,STATIC.cv.width,STATIC.cv.height);ctx.setTransform(P.dpr,0,0,P.dpr,0,0);
   try{const wc=RM.wallColor,fc=RM.floorColor,Lamb={amb:AMB,lights:[]},L={amb:AMB,lights};
+    drawTower(Lamb);
     drawBox(ctx,P,{x:-.3,y:-.3,z:-.35,w:N+.3,d:.3,h:WALL_H+.35,c:wc,stud:0},Lamb);
     drawBox(ctx,P,{x:-.3,y:0,z:-.35,w:.3,d:N,h:WALL_H+.35,c:wc,stud:0},Lamb);
     inPlane("back",()=>wallPattern(RM.wallStyle,5));inPlane("left",()=>wallPattern(RM.wallStyle,55));
@@ -1200,7 +1220,7 @@ function drawStatic(lights){const sc=ctx;ctx=STATIC.cv.getContext("2d");ctx.setT
     lights.filter(l=>l.pool).forEach(l=>{const pool=(k,cx,cy,r,a)=>inPlane(k,()=>{ctx.globalCompositeOperation="lighter";const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
         g.addColorStop(0,`rgba(${l.col},${a})`);g.addColorStop(1,`rgba(${l.col},0)`);ctx.fillStyle=g;ctx.fillRect(0,0,N,k==="floor"?N:WALL_H);});
       pool("floor",l.x,l.y,l.pool,l.pa);pool("back",l.x,l.z,l.pool*.85,l.pa/(1+l.y*l.y*.3));pool("left",l.y,l.z,l.pool*.85,l.pa/(1+l.x*l.x*.3));});
-    WINS.forEach(lightPatch);WINS.forEach(w=>inPlane(w.wall,()=>drawCity(w)));
+    WINS.forEach(lightPatch);WINS.forEach(cutWindow);
     const dl=dustLevel();if(dl){const R=rng(77);inPlane("floor",()=>{for(let i=0;i<N*N*(dl*3);i++){ctx.fillStyle=`rgba(150,140,125,${.25+R()*.25})`;ctx.beginPath();ctx.arc(R()*N,R()*N,.02+R()*.03,0,7);ctx.fill();}});
       if(dl>1)["back","left"].forEach(k=>inPlane(k,()=>{ctx.strokeStyle="rgba(230,230,235,.45)";ctx.lineWidth=.012;const cz=WALL_H;
         for(let a=0;a<5;a++){ctx.beginPath();ctx.moveTo(0,cz);ctx.lineTo(Math.cos(a*.39)*.9,cz-Math.sin(a*.39)*.9);ctx.stroke();}
@@ -1227,9 +1247,9 @@ function frame(t){if(!P)return;ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHid
   FXDIM=clamp((1-(AMB[0]+AMB[1]+AMB[2])/3)*.75,0,.45);const lights=buildLights(),L={amb:AMB,lights},key=staticKey();
   if(key!==STATIC.key){drawBackdrop();drawStatic(lights);STATIC.key=key;}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(BACK.cv,0,0);ctx.restore();
-  drawRain(backdropWin(),t,inBackdrop);
+  drawRain(t);
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(STATIC.cv,0,0);ctx.restore();
-  WINS.forEach(w=>{drawRain(w,t);sortBoxes(frameBoxes(w)).forEach(b=>drawBox(ctx,P,b,L));});
+  WINS.forEach(w=>sortBoxes(frameBoxes(w)).forEach(b=>drawBox(ctx,P,b,L)));
   RM.walls.forEach(it=>{if(placing&&placing.moveUid===it.uid)return;drawWallItem(it,L,selW===it.uid?"sel":null);});
   if(placing&&placing.kind==="wall"&&hover){const g={uid:-1,id:placing.id,v:placing.v,txt:placing.txt,...hover};drawWallItem(g,L,wallFits(placing.id,hover.wall,hover.s,hover.z,placing.moveUid)?"ghost":"bad");}
   // selection / placement highlight
