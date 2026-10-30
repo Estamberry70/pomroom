@@ -135,6 +135,22 @@ section > h2:first-child{margin-top:2px}
 .card .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
 .tag-s{font-size:11px;color:var(--muted);font-weight:700}
 .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.shoptools{display:flex;gap:8px;justify-content:flex-end;margin:2px 0 10px}
+.shopsec{border:2px solid var(--line);border-radius:16px;margin:0 0 10px;background:var(--surface);overflow:hidden}
+.shopsec>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;min-height:48px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.shopsec>summary::-webkit-details-marker{display:none}
+.shopsec>summary:hover{background:var(--bg)}
+.shopsec>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:14px}
+.shopsec .ic{font-size:20px;line-height:1;width:24px;text-align:center;flex:none}
+.shopsec .t{font-family:var(--display);font-size:17px;letter-spacing:.3px;min-width:0}
+.shopsec .c{font:800 12px var(--body);color:var(--muted);background:var(--bg);border-radius:999px;padding:2px 9px;flex:none}
+.shopsec .chev{margin-left:auto;flex:none;width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.shopsec[open] .chev{transform:translateY(2px) rotate(225deg)}
+.shopsec[open]>summary{border-bottom:2px solid var(--line)}
+.shopsec .secbody{padding:12px}
+.shopsec .secbody .sub{margin:0 0 10px}
+.shopsec .dots{margin-top:12px}
+@media (prefers-reduced-motion: reduce){.shopsec .chev{transition:none}}
 .sw{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:8px;border:2px solid transparent;cursor:pointer;color:var(--ink);font:700 13px var(--body);text-align:left}
 .sw[aria-pressed="true"]{border-color:var(--accent)}
 .sw i{width:40px;height:40px;border-radius:8px;flex:none;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
@@ -364,6 +380,50 @@ function sway(amp,sp=1,extra){return(ps,t,p)=>{const g=.65+.35*Math.sin(t*.23+p.
   for(let i=0;i<ps.length;i++){const b=ps[i];if(!b.lf)continue;const ph=p.uid*1.3+(b.x+b.y)*3.1+i*.37,w=(Math.sin(t*sp+ph)*.7+Math.sin(t*sp*2.3+ph*1.7)*.3)*g,k=amp*w*(.35+b.z);
     b.lf.b[0]+=k/b.w;b.lf.b[1]-=k*.6/b.d;b.lf.b[2]+=Math.abs(k)*.15/b.h;}
   if(extra)extra(ps,t,p);};}
+// ---- Christmas set ----
+// A Canadian pine on a 2x2 footprint: tiers of drooping needle branches (dense narrow leaves) round dark
+// cone cores, baubles, a spiral of lights and a star made of two crossed five-point planes so it reads from every side.
+// Light and star indices are kept in XMAS for the twinkle animation.
+const XMAS={lights:[],star:[]};
+function xmasTree(){const R=rng(1225),o=[],cx=1,cy=1,T=8,core=["#163A2B","#1B4434"],nd=["#1F4D3A","#2A5E46","#24553F","#316B4F"];
+  o.push(CYL(cx,cy,0,.8,.016,"#F2EFE8"),CYL(cx,cy,.016,.74,.016,"#A81E26"));                       // skirt with a white hem
+  o.push(CYL(cx,cy,.032,.19,.17,"#9E1B22",1.12),CYL(cx,cy,.2,.225,.03,"#D4A537"),ROD(cx,cy,.22,cx,cy,.62,.065,"#5A3A22",.055));
+  const rAt=z=>.9*(1-Math.min(1,Math.max(0,(z-.45)/(T*.24+.25)))),tiers=[];   // (clamp is defined after the catalog)
+  for(let i=0;i<T;i++){const z0=.45+i*.24,r=rAt(z0),h=.46;tiers.push([z0,r]);
+    o.push(CYL(cx,cy,z0+.05,r*.6,h,core[i%2],.1));
+    const n=Math.round(12+r*20);
+    for(let k=0;k<n;k++){const a=k/n*Math.PI*2+R()*.35+i*.7,tip=r*(.9+R()*.14),bz=z0+h*.62,tz=z0+.02+R()*.06,ca=Math.cos(a),sa=Math.sin(a);
+      o.push(LF(cx+ca*r*.18,cy+sa*r*.18,bz,cx+ca*tip,cy+sa*tip,tz,.065+r*.04,nd[(k+i)%nd.length],-.025,undefined,"g"));
+      if(k%2===0){const a2=a+Math.PI/n,t2=tip*.7;
+        o.push(LF(cx+Math.cos(a2)*r*.15,cy+Math.sin(a2)*r*.15,bz+.08,cx+Math.cos(a2)*t2,cy+Math.sin(a2)*t2,tz+.13,.06+r*.035,nd[(k+i+1)%nd.length],-.02,undefined,"g"));}}}
+  const top=.45+T*.24;o.push(CYL(cx,cy,top-.08,.1,.3,core[0],.05));
+  for(let k=0;k<7;k++){const a=k/7*Math.PI*2;o.push(LF(cx,cy,top+.14,cx+Math.cos(a)*.12,cy+Math.sin(a)*.12,top-.01,.06,nd[k%4],-.015,undefined,"g"));}
+  // baubles: a few per tier, sitting on the branch tips
+  const BAUB=["#C8202E","#D9A92B","#E6E8F0","#2D5FB8","#B03A8C","#C8202E"];
+  tiers.forEach(([z0,r],i)=>{const m=Math.max(2,Math.round(r*7));for(let k=0;k<m;k++){const a=k/m*Math.PI*2+i*1.3+R()*.4,rr=r*.8;
+    o.push(SPH(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,z0+.12,.042+R()*.014,BAUB[(k+i)%BAUB.length]));}});
+  // lights wound round the tree
+  const LC=["#FFD27A","#FF6B6B","#7AD8FF","#B6FF8A","#FFB347"];XMAS.lights=[];
+  for(let s=0;s<52;s++){const u=s/52,z=.55+u*1.85,a=u*Math.PI*2*5.2,rr=rAt(z)*.86+.03;
+    XMAS.lights.push([o.length,LC[s%LC.length],s*1.7]);o.push(SPH(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,z,.024,LC[s%LC.length],"o"));}
+  // star: two crossed planes of five gold points and a bright heart
+  const sz=top+.36,S=.17;XMAS.star=[];
+  for(const[ux,uy]of[[.707,-.707],[.707,.707]])for(let k=0;k<5;k++){const a=Math.PI/2+k*Math.PI*2/5;
+    XMAS.star.push(o.length);o.push(LF(cx,cy,sz,cx+ux*Math.cos(a)*S,cy+uy*Math.cos(a)*S,sz+Math.sin(a)*S,.075,"#F2B705",0,"#B8860B","g"));}
+  XMAS.star.push(o.length);o.push(SPH(cx,cy,sz,.045,"#FFE680","e"));
+  return o;}
+// a wrapped present cut in three slices along x so the ribbon is its own part, a ribbon over the top and a bow
+function gift(x,y,s,h,A,Rb){const r=s*.18,a=(s-r)/2,cx=x+s/2,cy=y+s/2;
+  return[[x,y,0,a,s,h,A,"n"],[x+a,y,0,r,s,h,Rb,"n"],[x+a+r,y,0,a,s,h,A,"n"],[x,y+a,h,s,r,.006,Rb,"n"],
+    LF(cx,cy,h+.012,cx-s*.2,cy+s*.06,h+s*.2,s*.22,Rb,0,undefined,"p"),LF(cx,cy,h+.012,cx+s*.2,cy-s*.06,h+s*.2,s*.22,Rb,0,undefined,"p"),SPH(cx,cy,h+.025,s*.07,Rb)];}
+// the advent wreath: a ring of short needle sprigs with red berries
+function adventRing(cx,cy,z,R0){const o=[],G=["#1F4D3A","#2A5E46","#316B4F"];
+  for(let k=0;k<18;k++){const a=k/18*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),b=a+.5;
+    o.push(LF(cx+ca*R0,cy+sa*R0,z,cx+ca*R0+Math.cos(b)*.11,cy+sa*R0+Math.sin(b)*.11,z+.035,.05,G[k%3],0,"#86AE9D","g"));}
+  for(let k=0;k<6;k++){const a=k/6*Math.PI*2+.26;o.push(SPH(cx+Math.cos(a)*(R0+.05),cy+Math.sin(a)*(R0+.05),z+.045,.018,"#C8202E"));}
+  return o;}
+// candy-cane stripes: a chain of short rods alternating red and white along a path
+function caneChain(pts,r){const o=[];for(let i=0;i<pts.length-1;i++)o.push(ROD(...pts[i],...pts[i+1],r,i%2?"#F4F2EC":"#D21F2E"));return o;}
 const CATALOG = {
   cama:{name:"Cama",cat:"camas",bed:{dx:0,dz:0},w:1,d:2,price:60,tok:{L:"#3A6FD8",M:"#5B8BEA",W:"#7A4E2D",H:"#6B4426"},
     vars:[{n:"Azul"},{n:"Roja",tok:{L:"#C8342B",M:"#E0564C"}},{n:"Verde",tok:{L:"#3E8F5A",M:"#5BAE76"}},{n:"Gris",tok:{L:"#6B7078",M:"#8C929B"}},{n:"Rosa",tok:{L:"#E07AA0",M:"#F09ABA"}},{n:"Mostaza",tok:{L:"#D9A12E",M:"#EDBB4E"}},{n:"Blanca",tok:{L:"#F2F0EA",M:"#FFFFFF",W:"#ECEAE4",H:"#D6D3CB"}}],
@@ -519,6 +579,50 @@ const CATALOG = {
     parts:insetBed(2,2,[[0,0,0,2,2,.14,"$W","n"],[0,0,.14,2,.08,.55,"$W","n"],[.1,.12,.14,1.8,1.78,.18,"#F4F2EC","n"],...pillow(.55,.33,.32,.17,.145,.052),...pillow(1.45,.33,.32,.17,.145,.052),
       [.08,.6,.32,1.84,1.3,.06,"$L","nk"],...quilt(.08,.6,1.92,1.9,.38,5,{l:1,r:1,f:1}),
       ...drapeY(.05,.03,.6,1.9,.38,.15,6),...drapeY(1.92,.03,.6,1.9,.38,.15,6),...drapeX(1.9,.03,.08,1.92,.38,.15,6)])},
+  // ---- Christmas set ----
+  arbolNavidad:{name:"Árbol de Navidad",cat:"navidad",w:2,d:2,price:150,soft:true,
+    light:{dz:1.3,c:[1,.78,.45],i:1.5,pool:2.6,col:"255,196,120",pa:.32,flicker:true},
+    parts:xmasTree(),
+    anim:(ps,t,p)=>{for(const[i,c,ph]of XMAS.lights){const k=.5+.5*Math.sin(t*2.4+ph+p.uid);ps[i].c=k<.18?hexLerp(c,"#2A1A08",.5):hexLerp(c,"#FFFFFF",(k-.18)*.6);}
+      const g=.5+.5*Math.sin(t*1.6+p.uid);for(const i of XMAS.star)ps[i].c=ps[i].sph?hexLerp("#FFD84A","#FFF8D0",g):hexLerp("#E8A800","#FFD84A",g);}},
+  regalos:{name:"Regalos",cat:"navidad",w:1,d:1,price:35,tok:{A:"#C8202E",R:"#F2C14E",B:"#2E7D4F",S:"#F4F2EC",C:"#2D5FB8"},
+    vars:[{n:"Clásicos"},{n:"Dorado y blanco",tok:{A:"#F4F2EC",R:"#C9962B",B:"#C9962B",S:"#A81E26",C:"#A81E26"}},{n:"Pastel",tok:{A:"#F2B6C0",R:"#FFFFFF",B:"#A8D8C8",S:"#E86A8A",C:"#C9B6E8"}}],
+    parts:[...gift(.08,.1,.46,.34,"$A","$R"),...gift(.58,.5,.32,.24,"$B","$S"),...gift(.14,.62,.3,.18,"$C","$R")]},
+  munecoNieve:{name:"Muñeco de nieve",cat:"navidad",w:1,d:1,price:40,soft:true,tok:{S:"#C8202E"},
+    vars:[{n:"Bufanda roja"},{n:"Bufanda verde",tok:{S:"#2E7D4F"}},{n:"Bufanda azul",tok:{S:"#2D5FB8"}}],
+    parts:[SPH(.5,.5,.2,.22,"#F4F7FB","",.2),SPH(.5,.5,.52,.16,"#F4F7FB","",.15),SPH(.5,.5,.79,.115,"#F4F7FB","",.11),
+      SPH(.606,.606,.57,.017,"#1C1C22"),SPH(.61,.61,.48,.017,"#1C1C22"),
+      ROD(.6,.4,.56,.75,.25,.72,.012,"#5A3A22",.006),ROD(.4,.6,.56,.25,.75,.72,.012,"#5A3A22",.006),ROD(.7,.3,.67,.76,.28,.78,.006,"#5A3A22",.004),
+      CYL(.5,.5,.655,.125,.045,"$S"),[.57,.6,.5,.05,.025,.15,"$S","n"],
+      SPH(.599,.549,.82,.014,"#1C1C22"),SPH(.549,.599,.82,.014,"#1C1C22"),ROD(.57,.57,.795,.66,.66,.785,.016,"#F08A24",.003),
+      CYL(.5,.5,.88,.12,.018,"#1C1C22"),CYL(.5,.5,.898,.083,.03,"$S"),CYL(.5,.5,.928,.08,.12,"#1C1C22")]},
+  cascanueces:{name:"Cascanueces",cat:"navidad",w:1,d:1,price:45,tok:{J:"#C8202E"},
+    vars:[{n:"Rojo"},{n:"Azul",tok:{J:"#2D4FA0"}},{n:"Verde",tok:{J:"#2E7D4F"}}],
+    parts:[[.3,.32,0,.4,.36,.06,"#2B2F3A","n"],
+      [.38,.42,.06,.09,.12,.12,"#1C1C22","n"],[.53,.42,.06,.09,.12,.12,"#1C1C22","n"],[.38,.42,.18,.09,.12,.22,"#F4F2EC","n"],[.53,.42,.18,.09,.12,.22,"#F4F2EC","n"],
+      [.35,.4,.4,.3,.16,.08,"$J","n"],[.35,.4,.48,.3,.16,.035,"#1C1C22","n"],[.47,.56,.483,.06,.006,.03,"#D4A537","n"],[.35,.4,.515,.3,.16,.185,"$J","n"],
+      [.49,.56,.56,.02,.006,.02,"#D4A537","n"],[.49,.56,.61,.02,.006,.02,"#D4A537","n"],[.49,.56,.66,.02,.006,.02,"#D4A537","n"],
+      [.3,.43,.41,.05,.1,.04,"#F4F2EC","n"],[.65,.43,.41,.05,.1,.04,"#F4F2EC","n"],[.3,.43,.45,.05,.1,.21,"$J","n"],[.65,.43,.45,.05,.1,.21,"$J","n"],
+      [.3,.42,.66,.06,.12,.04,"#D4A537","n"],[.64,.42,.66,.06,.12,.04,"#D4A537","n"],
+      [.39,.41,.7,.22,.16,.17,"#F2C9A0","n"],[.4,.57,.7,.2,.03,.075,"#F4F2EC","n"],[.485,.57,.765,.03,.02,.03,"#E8A87C","n"],
+      [.43,.57,.8,.03,.006,.03,"#1C1C22","n"],[.54,.57,.8,.03,.006,.03,"#1C1C22","n"],
+      [.38,.4,.87,.24,.18,.035,"#D4A537","n"],[.38,.4,.905,.24,.18,.23,"#1C1C22","n"],[.47,.47,1.135,.06,.06,.07,"$J","n"]]},
+  bastonCaramelo:{name:"Bastón de caramelo",cat:"navidad",w:1,d:1,price:25,
+    parts:[DOME(.38,.5,0,.15,.07,"#F4F7FB"),LF(.3,.6,.05,.2,.66,.08,.06,"#2E7D4F",0,undefined,"g"),LF(.3,.6,.05,.24,.72,.09,.06,"#24653F",0,undefined,"g"),SPH(.3,.6,.07,.02,"#C8202E"),
+      ...caneChain([...Array.from({length:11},(_,i)=>[.38,.5,.04+i*.096]),...Array.from({length:7},(_,i)=>{const a=Math.PI-(i+1)*Math.PI/7;return[.55+Math.cos(a)*.17,.5,1.0+Math.sin(a)*.17];}),[.72,.5,.9]],.045)]},
+  casitaJengibre:{name:"Casita de jengibre",cat:"navidad",small:true,w:1,d:1,price:20,
+    parts:[[.18,.2,0,.64,.6,.02,"#F4F2EC","n"],[.28,.3,.02,.44,.38,.24,"#B06A30","n"],[.44,.68,.02,.12,.006,.15,"#6B3A1A","n"],
+      [.72,.36,.12,.006,.1,.08,"#FFD27A","n"],[.72,.52,.12,.006,.1,.08,"#FFD27A","n"],
+      [.24,.26,.26,.52,.46,.045,"#F4F2EC","n"],[.24,.31,.305,.52,.36,.045,"#8A4E24","n"],[.24,.36,.35,.52,.26,.045,"#F4F2EC","n"],[.24,.41,.395,.52,.16,.045,"#8A4E24","n"],[.24,.46,.44,.52,.06,.03,"#F4F2EC","n"],
+      SPH(.23,.25,.04,.022,"#E0304A"),SPH(.77,.25,.04,.022,"#3DBA6A"),SPH(.23,.75,.04,.022,"#F2C14E"),SPH(.77,.75,.04,.022,"#E0304A"),
+      SPH(.32,.49,.485,.02,"#E0304A"),SPH(.5,.49,.485,.02,"#3DBA6A"),SPH(.68,.49,.485,.02,"#F2C14E")]},
+  velasAdviento:{name:"Corona de adviento",cat:"navidad",small:true,w:1,d:1,price:25,soft:true,tok:{C:"#C8202E"},
+    light:{dz:.32,c:[1,.75,.45],i:1.1,pool:1.8,col:"255,190,110",pa:.24,flicker:true},
+    vars:[{n:"Rojas"},{n:"Blancas",tok:{C:"#F4F2EC"}},{n:"Moradas",tok:{C:"#6B3FA0"}}],
+    parts:[CYL(.5,.5,0,.32,.03,"#D4A537"),...adventRing(.5,.5,.03,.2),
+      ...[[.64,.64,.24],[.36,.64,.2],[.36,.36,.17],[.64,.36,.14]].flatMap(([x,y,h])=>[CYL(x,y,.04,.042,h,"$C"),ROD(x,y,.04+h,x,y,.06+h,.004,"#2B2420"),
+        LF(x,y,.052+h,x,y,.135+h,.045,"#FFC24A",0,undefined,"f")])],
+    anim:flicker},
   // ---- desks & chairs ----
   escritorioGamer:{name:"Escritorio gamer",cat:"escritorio",w:2,d:1,price:120,surface:.78,desk:{seat:.6,chair:"#1C1C22",accent:"#C8342B"},
     parts:[[.04,.12,0,.1,.76,.72,"#1C1C22","n"],[1.86,.12,0,.1,.76,.72,"#1C1C22","n"],[1.5,.16,0,.32,.6,.62,"#17181E","n"],[1.53,.76,.08,.26,.005,.46,"#FF3B6B","ne","rgb"],
@@ -846,6 +950,57 @@ const WCAT={
     boxes:(it,va,w,h)=>[wbox(it,w/2-.02,0,it.z+h-.05,.04,.03,.04,"#9AA0AD"),wbox(it,-.04,.03,it.z+h-.08,w+.08,.03,.03,"#C9A44C"),
       wbox(it,-.07,.025,it.z+h-.09,.04,.04,.05,"#C9A44C"),wbox(it,w+.03,.025,it.z+h-.09,.04,.04,.05,"#C9A44C")]},
   // generic wall items: `frame` is the backing box colour, draw(w,h,sh,va,it) paints the front face (v up), boxes(it,va,w,h) adds 3D parts
+  // ---- Christmas set (wall) ----
+  // wreath: a ring of fir sprigs with frosted tips, pine cones, clusters of red berries and a velvet bow
+  coronaNavidad:{name:"Corona navideña",cat:"navidad",price:30,w:.72,h:.72,dep:.06,noShadow:true,tok:{B:"#C8202E"},
+    vars:[{n:"Lazo rojo",sw:"#C8202E"},{n:"Lazo dorado",tok:{B:"#C9962B"},sw:"#C9962B"},{n:"Lazo plateado",tok:{B:"#B9C0CC"},sw:"#B9C0CC"}],
+    draw:(w,h,sh,va,it)=>{const cx=w/2,cy=h/2+.03,R0=.23,Rn=rng(31),B=(va.tok&&va.tok.B)||"#C8202E";
+      ctx.fillStyle="rgba(0,0,12,.18)";ctx.beginPath();ctx.arc(cx+.02,cy-.03,R0+.09,0,7);ctx.arc(cx+.02,cy-.03,R0-.09,0,7,true);ctx.fill();
+      ctx.lineWidth=.13;ctx.strokeStyle=sh("#163A2B");ctx.beginPath();ctx.arc(cx,cy,R0,0,7);ctx.stroke();
+      ctx.lineCap="round";const G=["#1F4D3A","#2A5E46","#316B4F","#24553F","#3B7A5A"];
+      for(let i=0;i<170;i++){const a=Rn()*Math.PI*2,rr=R0+(Rn()-.5)*.14,x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr,b=a+Math.PI/2+(Rn()-.5)*1.4,l=.035+Rn()*.03;
+        ctx.strokeStyle=sh(G[i%G.length]);ctx.lineWidth=.016;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(b)*l,y+Math.sin(b)*l);ctx.stroke();
+        if(i%3===0){ctx.strokeStyle=sh("#9CC2B0");ctx.lineWidth=.006;ctx.beginPath();ctx.moveTo(x+Math.cos(b)*l*.6,y+Math.sin(b)*l*.6);ctx.lineTo(x+Math.cos(b)*l,y+Math.sin(b)*l);ctx.stroke();}}
+      for(const a of[.5,2.2,3.9,5.3]){const x=cx+Math.cos(a)*R0,y=cy+Math.sin(a)*R0;ctx.fillStyle=sh("#6B4426");ctx.beginPath();ctx.ellipse(x,y,.026,.04,a,0,7);ctx.fill();
+        ctx.strokeStyle=sh("#8A5A36");ctx.lineWidth=.006;for(let k=-1;k<=1;k++){ctx.beginPath();ctx.ellipse(x,y+k*.014,.02,.008,a,0,Math.PI);ctx.stroke();}}
+      for(const a of[1.1,2.9,4.4,5.9,.1]){for(let k=0;k<3;k++){const x=cx+Math.cos(a)*R0+(k-1)*.022,y=cy+Math.sin(a)*R0+(k%2)*.02;
+        ctx.fillStyle=sh("#B3121F");ctx.beginPath();ctx.arc(x,y,.017,0,7);ctx.fill();ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.arc(x-.005,y+.006,.005,0,7);ctx.fill();}}
+      const by=cy-R0-.02;ctx.fillStyle=sh(B);
+      ctx.beginPath();ctx.moveTo(cx-.02,by-.01);ctx.lineTo(cx-.08,by-.15);ctx.lineTo(cx-.05,by-.14);ctx.lineTo(cx-.03,by-.17);ctx.lineTo(cx+.005,by-.01);ctx.fill();
+      ctx.beginPath();ctx.moveTo(cx+.02,by-.01);ctx.lineTo(cx+.08,by-.15);ctx.lineTo(cx+.05,by-.14);ctx.lineTo(cx+.03,by-.17);ctx.lineTo(cx-.005,by-.01);ctx.fill();
+      for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(cx+s*.065,by+.01,.065,.04,s*.25,0,7);ctx.fill();ctx.fillStyle="rgba(0,0,10,.25)";ctx.beginPath();ctx.ellipse(cx+s*.06,by+.008,.03,.016,s*.25,0,7);ctx.fill();ctx.fillStyle=sh(B);}
+      ctx.beginPath();ctx.arc(cx,by+.01,.026,0,7);ctx.fill();ctx.fillStyle="rgba(255,255,255,.22)";ctx.beginPath();ctx.ellipse(cx-.07,by+.025,.03,.01,.2,0,7);ctx.fill();}},
+  // stocking: a red felt sock with a fluffy cuff, a patterned heel and toe and a candy cane peeking out
+  calcetinNavidad:{name:"Calcetín navideño",cat:"navidad",price:20,w:.44,h:.66,dep:.03,noShadow:true,tok:{C:"#C8202E",P:"#2E7D4F"},
+    vars:[{n:"Rojo",sw:"#C8202E"},{n:"Verde",tok:{C:"#2E7D4F",P:"#C8202E"},sw:"#2E7D4F"},{n:"Azul",tok:{C:"#2D4FA0",P:"#F4F2EC"},sw:"#2D4FA0"}],
+    draw:(w,h,sh,va,it)=>{const C=(va.tok&&va.tok.C)||"#C8202E",Pc=(va.tok&&va.tok.P)||"#2E7D4F";
+      const sock=()=>{ctx.beginPath();ctx.moveTo(.1,.52);ctx.lineTo(.1,.24);ctx.quadraticCurveTo(.1,.06,.27,.06);ctx.lineTo(.35,.06);ctx.quadraticCurveTo(.43,.06,.42,.14);ctx.quadraticCurveTo(.41,.22,.32,.23);ctx.lineTo(.3,.52);ctx.closePath();};
+      ctx.save();ctx.translate(.015,-.02);ctx.fillStyle="rgba(0,0,12,.2)";sock();ctx.fill();ctx.restore();
+      ctx.lineCap="round";for(let k=0;k<4;k++){ctx.strokeStyle=k%2?"#F4F2EC":"#D21F2E";ctx.lineWidth=.03;ctx.beginPath();ctx.moveTo(.27,.5+k*.03);ctx.lineTo(.27,.53+k*.03);ctx.stroke();}
+      ctx.strokeStyle="#D21F2E";ctx.lineWidth=.03;ctx.beginPath();ctx.arc(.31,.62,.04,Math.PI,0,true);ctx.stroke();
+      const g=ctx.createLinearGradient(.1,0,.42,0);g.addColorStop(0,sh(C));g.addColorStop(1,sh(hexLerp(C,"#000000",.2)));ctx.fillStyle=g;sock();ctx.fill();
+      ctx.save();sock();ctx.clip();ctx.fillStyle=sh(Pc);ctx.beginPath();ctx.arc(.38,.13,.09,0,7);ctx.fill();ctx.beginPath();ctx.arc(.12,.12,.08,0,7);ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.75)";for(let k=0;k<5;k++)for(let j=0;j<2;j++){const x=.15+j*.1+(k%2)*.05,y=.24+k*.055;ctx.fillRect(x-.012,y-.003,.024,.006);ctx.fillRect(x-.003,y-.012,.006,.024);}ctx.restore();
+      ctx.fillStyle=sh("#F7F4EE");ctx.beginPath();ctx.roundRect?ctx.roundRect(.07,.46,.27,.12,.04):ctx.rect(.07,.46,.27,.12);ctx.fill();
+      ctx.fillStyle="rgba(0,0,12,.08)";for(let k=0;k<6;k++){ctx.beginPath();ctx.arc(.09+k*.046,.465,.022,0,7);ctx.fill();}
+      ctx.strokeStyle=sh("#D4A537");ctx.lineWidth=.012;ctx.beginPath();ctx.arc(.1,.6,.03,Math.PI*.2,Math.PI*1.4);ctx.stroke();}},
+  // pine garland: a drooping swag of fir with frosted tips, bows at the ends, baubles and twinkling bulbs
+  guirnaldaPino:{name:"Guirnalda de pino",cat:"navidad",price:45,w:2,h:.55,dep:.04,light:true,noShadow:true,
+    vars:[{n:"Cálida",pal:["#FFD27A","#FFC14A"],sw:"#FFD27A",lc:[1,.8,.5],col:"255,200,120"},{n:"Multicolor",pal:["#FF5A5A","#FFD25A","#5AFF8A","#5AC8FF","#C29AFF"],sw:"#FF5ADB",lc:[1,.75,.9],col:"255,190,220"}],
+    draw:(w,h,sh,va,it)=>{const y0=h-.1,sag=.24,at=k=>[.06+(w-.12)*k,y0-sag*4*k*(1-k)],Rn=rng(77),G=["#1F4D3A","#2A5E46","#316B4F","#24553F"];
+      ctx.lineCap="round";ctx.strokeStyle="rgba(0,0,12,.16)";ctx.lineWidth=.12;ctx.beginPath();for(let i=0;i<=24;i++){const[x,y]=at(i/24);i?ctx.lineTo(x+.02,y-.03):ctx.moveTo(x+.02,y-.03);}ctx.stroke();
+      ctx.strokeStyle=sh("#163A2B");ctx.lineWidth=.1;ctx.beginPath();for(let i=0;i<=24;i++){const[x,y]=at(i/24);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+      for(let i=0;i<260;i++){const k=Rn(),[x,y]=at(k),b=(Rn()-.5)*Math.PI*1.6-Math.PI/2*(Rn()<.5?1:-1),l=.03+Rn()*.03,ox=(Rn()-.5)*.05,oy=(Rn()-.5)*.06;
+        ctx.strokeStyle=sh(G[i%4]);ctx.lineWidth=.014;ctx.beginPath();ctx.moveTo(x+ox,y+oy);ctx.lineTo(x+ox+Math.cos(b)*l,y+oy+Math.sin(b)*l);ctx.stroke();
+        if(i%4===0){ctx.strokeStyle=sh("#9CC2B0");ctx.lineWidth=.005;ctx.beginPath();ctx.moveTo(x+ox+Math.cos(b)*l*.6,y+oy+Math.sin(b)*l*.6);ctx.lineTo(x+ox+Math.cos(b)*l,y+oy+Math.sin(b)*l);ctx.stroke();}}
+      for(const k of[.25,.75]){const[x,y]=at(k),c=k<.5?"#C8202E":"#D9A92B";ctx.strokeStyle=sh("#D4A537");ctx.lineWidth=.004;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-.07);ctx.stroke();
+        const g=ctx.createRadialGradient(x-.015,y-.085,0,x,y-.1,.04);g.addColorStop(0,"#FFFFFF");g.addColorStop(.25,sh(c));g.addColorStop(1,sh(hexLerp(c,"#000000",.45)));ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y-.1,.035,0,7);ctx.fill();}
+      for(let i=0;i<11;i++){const[x,y]=at((i+.5)/11),c=va.pal[i%va.pal.length],k=REDUCED?1:.6+.4*Math.sin(NOW*2.1+i*1.9+it.uid),yy=y-.03+(i%2)*.04;
+        ctx.save();ctx.shadowColor=c;ctx.shadowBlur=P.tw*.28*k;ctx.globalAlpha*=.5+.5*k;ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(x,yy,.022,.034,0,0,7);ctx.fill();ctx.restore();
+        ctx.fillStyle=sh("#2B2F3A");ctx.fillRect(x-.01,yy+.025,.02,.016);}
+      for(const x of[.07,w-.07]){const y=y0;ctx.fillStyle=sh("#C8202E");for(const s of[-1,1]){ctx.beginPath();ctx.ellipse(x+s*.05,y+.01,.05,.03,s*.3,0,7);ctx.fill();}
+        ctx.beginPath();ctx.moveTo(x-.01,y);ctx.lineTo(x-.05,y-.14);ctx.lineTo(x-.02,y-.13);ctx.lineTo(x+.01,y);ctx.moveTo(x+.01,y);ctx.lineTo(x+.05,y-.14);ctx.lineTo(x+.02,y-.13);ctx.lineTo(x-.01,y);ctx.fill();
+        ctx.beginPath();ctx.arc(x,y+.01,.02,0,7);ctx.fill();}}},
   guirnalda:{name:"Guirnalda de luces",cat:"pared",price:35,w:1.6,h:.4,dep:.03,light:true,noShadow:true,
     vars:[{n:"Cálida",pal:["#FFD27A"],sw:"#FFD27A",lc:[1,.8,.5],col:"255,200,120"},{n:"Multicolor",pal:["#FF5A5A","#FFD25A","#5AFF8A","#5AC8FF","#C29AFF"],sw:"#FF5ADB",lc:[1,.75,.9],col:"255,190,220"},{n:"Fría",pal:["#CFE6FF"],sw:"#CFE6FF",lc:[.8,.9,1],col:"210,230,255"}],
     draw:(w,h,sh,va,it)=>{const y0=h-.05,at=k=>[w*k,y0-h*.75*4*k*(1-k)];ctx.strokeStyle=sh("#2B2F3A");ctx.lineWidth=.012;ctx.beginPath();for(let i=0;i<=20;i++){const[x,y]=at(i/20);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
@@ -896,7 +1051,7 @@ const WCAT={
       ctx.fillStyle=sh("#9CC27A");[[.22,.44,.13,.1],[.27,.24,.06,.11],[.52,.46,.07,.06],[.55,.27,.07,.12],[.74,.44,.16,.09],[.86,.2,.06,.04]].forEach(([x,y,rx,ry])=>{ctx.beginPath();ctx.ellipse(x*w,y*h,rx,ry,0,0,7);ctx.fill();});
       ctx.fillStyle=sh("#E8D8BC");ctx.beginPath();ctx.ellipse(.5*w,h*.08,.3,.025,0,0,7);ctx.fill();}},
 };
-const CATS=[["novedades","Novedades"],["camas","Camas y mesitas","Tu minifigura duerme en la cama durante los descansos."],["escritorio","Escritorios y sillas","Las computadoras muestran tu temporizador en vivo mientras te enfocas. Tu minifigura se sienta a estudiar en el escritorio."],["lamparas","Lámparas"],["relojes","Relojes"],["sala","Sala"],["peque","Cosas pequeñas","Se pueden poner encima de escritorios, mesas, mesitas y la mini nevera."],["plantas","Plantas","Las pequeñas se pueden poner encima de mesas y escritorios."],["mesa","Para mesas y escritorios","Detalles para poner encima de escritorios, mesas, mesitas y la mini nevera. Varios se mueven."],["mascotas","Mascotas","El perro viene con su propia cama. El gato se sube a tu cama para dormir."],["pared","Adornos de pared"],["medico","Set consultorio médico"],["italia","Set Italia"],["japon","Set Japón"]];
+const CATS=[["novedades","Novedades"],["camas","Camas y mesitas","Tu minifigura duerme en la cama durante los descansos."],["escritorio","Escritorios y sillas","Las computadoras muestran tu temporizador en vivo mientras te enfocas. Tu minifigura se sienta a estudiar en el escritorio."],["lamparas","Lámparas"],["relojes","Relojes"],["sala","Sala"],["peque","Cosas pequeñas","Se pueden poner encima de escritorios, mesas, mesitas y la mini nevera."],["plantas","Plantas","Las pequeñas se pueden poner encima de mesas y escritorios."],["mesa","Para mesas y escritorios","Detalles para poner encima de escritorios, mesas, mesitas y la mini nevera. Varios se mueven."],["mascotas","Mascotas","El perro viene con su propia cama. El gato se sube a tu cama para dormir."],["pared","Adornos de pared"],["medico","Set consultorio médico"],["italia","Set Italia"],["japon","Set Japón"],["navidad","Set Navidad","El árbol y las guirnaldas se iluminan y titilan. Lo pequeño va encima de mesas y escritorios."]];
 const STYLES={floor:[{id:"lego",name:"Liso brillante",p:0},{id:"parque",name:"Parqué",p:50},{id:"baldosas",name:"Baldosas",p:40},{id:"moqueta",name:"Moqueta",p:30}],
   wall:[{id:"lego",name:"Bloques",p:0},{id:"liso",name:"Pintura lisa",p:20},{id:"ladrillo",name:"Ladrillo visto",p:60},{id:"madera",name:"Paneles de madera",p:50},{id:"rayas",name:"Papel a rayas",p:35}]};
 const COLORS={floor:["#C9965B","#8A5A36","#E3C9A0","#9DA3AE","#3A3D48","#5E8FD6","#8CCBA8","#D9D4C7"],
@@ -2132,6 +2287,8 @@ function softShadow(x,y,r,z=0){[x,y]=vPt(x,y);const [cx,cy]=pt(P,x,y,z),g=ctx.cr
   ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,r*P.tw*.6,r*P.th*.6,0,0,7);ctx.fill();}
 // face brightness follows the live turn only inside the room; previews keep the plain view
 function frame(t){if(!P)return;setKey(ROT.phi||0);try{frameRoom(t);}finally{setKey(0);}}
+// would the reused static image, scaled and shifted to the camera, leave part of the canvas undrawn?
+function uncovered(s){const k=CAM.z/s.z,x0=CAM.ox-k*s.ox,y0=CAM.oy-k*s.oy;return x0>1||y0>1||x0+k*P.W<P.W-1||y0+k*P.H<P.H-1;}
 function frameRoom(t){ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHide();refreshViewWalls();
   AMB=lerp(lerp([.5,.5,.68],[1.02,1,.97],ENV.day),[.88,.68,.62],ENV.dusk*.7);if(ENV.wx==="lluvia"||ENV.wx==="tormenta")AMB=AMB.map(v=>v*.82);if(ENV.wx==="niebla")AMB=AMB.map(v=>v*.92);
   if(ENV.wx==="tormenta"&&!REDUCED){if(t>nextFlash){FLASH=1;nextFlash=t+6+Math.random()*9;}FLASH=Math.max(0,FLASH-.06);if(FLASH>.3&&FLASH<.5&&Math.random()<.3)FLASH=.9;}else FLASH=0;
@@ -2141,7 +2298,7 @@ function frameRoom(t){ENV=envNow();NOW=t;NOTES=[];TAGS=[];SEATQ=seatHide();refre
   // (without its blurs, which are redone once the turn stops)
   const sc=STATIC.cam,moved=!sc||sc.z!==CAM.z||sc.ox!==CAM.ox||sc.oy!==CAM.oy;FAST=ROT.to!==null;
   if(key!==STATIC.key){drawBackdrop();drawStatic(lights);STATIC.key=key;STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
-  else if(sc.th!==ROT.th||sc.fast&&!FAST||moved&&performance.now()-CAM.t>180){drawStatic(lights);STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
+  else if(sc.th!==ROT.th||sc.fast&&!FAST||moved&&(performance.now()-CAM.t>180||uncovered(sc))){drawStatic(lights);STATIC.cam={...CAM,th:ROT.th,fast:FAST};}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(BACK.cv,0,0);ctx.restore();
   drawCityFx(t);drawRain(t);
   {const s=STATIC.cam,k=CAM.z/s.z;ctx.save();ctx.setTransform(k,0,0,k,(CAM.ox-k*s.ox)*P.dpr,(CAM.oy-k*s.oy)*P.dpr);ctx.drawImage(STATIC.cv,0,0);ctx.restore();}
@@ -2326,21 +2483,37 @@ function shopCard(id,d){const el=document.createElement("div");el.className="car
 function buy(id,price){if(!FREE){if(S.coins<price)return;S.coins-=price;}S.inv[id]=(S.inv[id]||0)+1;
   const bid=CATALOG[id]&&CATALOG[id].bedId;if(bid)S.inv[bid]=(S.inv[bid]||0)+1;
   save();refresh();startPlacing(id);toast(bid?`${nameOf(id)}: incluye su cama (quedó en Cosas). Elige dónde ponerlo`:`${nameOf(id)}: elige dónde ponerlo`);}
+// The shop is a list of sections that fold open and shut. Which ones are open is remembered on this device, and a
+// section's previews are only drawn the first time it opens, so a mostly closed shop is quick to show.
+const SHOP_ICON={novedades:"✨",camas:"🛏️",escritorio:"🖥️",lamparas:"💡",relojes:"⏰",sala:"🛋️",peque:"🎲",plantas:"🪴",mesa:"☕",mascotas:"🐾",
+  pared:"🖼️",medico:"🩺",italia:"🍕",japon:"🎎",navidad:"🎄",floor:"🟫",wall:"🧱"};
+const SHOP_OPEN=new Set((()=>{try{const s=JSON.parse(localStorage.getItem("pomoroom.shopOpen"));if(Array.isArray(s))return s;}catch(e){}return["novedades"];})());
+function saveShopOpen(){try{localStorage.setItem("pomoroom.shopOpen",JSON.stringify([...SHOP_OPEN]));}catch(e){}}
+function shopSection(v,key,label,count,sub,fill){const d=document.createElement("details");d.className="shopsec";d.open=SHOP_OPEN.has(key);
+  d.innerHTML=`<summary><span class="ic" aria-hidden="true">${SHOP_ICON[key]||"•"}</span><span class="t">${label}</span><span class="c">${count}</span><span class="chev" aria-hidden="true"></span></summary>`;
+  const body=document.createElement("div");body.className="secbody";d.appendChild(body);let filled=false;
+  const fillIt=()=>{if(filled)return;filled=true;if(sub){const p=document.createElement("p");p.className="sub";p.textContent=sub;body.appendChild(p);}fill(body);};
+  if(d.open)fillIt();
+  d.addEventListener("toggle",()=>{if(d.open){SHOP_OPEN.add(key);fillIt();}else SHOP_OPEN.delete(key);saveShopOpen();});
+  v.appendChild(d);return d;}
 function renderShop(){const v=document.getElementById("view-shop");v.innerHTML="";
   if(ON.visit){v.innerHTML=`<div class="empty">Estás de visita en la habitación de ${escapeHtml(ON.visit.hostNick)}.<br>Vuelve a la tuya desde el botón <b>Visitando</b> para decorar.</div>`;return;}
-  CATS.forEach(([k,label,sub])=>{const h=document.createElement("h2");h.textContent=label;v.appendChild(h);if(sub){const p=document.createElement("p");p.className="sub";p.textContent=sub;v.appendChild(p);}
-    const g=document.createElement("div");g.className="grid";
-    Object.entries(CATALOG).filter(([,d])=>d.cat===k).forEach(([id,d])=>g.appendChild(shopCard(id,d)));
-    Object.entries(WCAT).filter(([,d])=>d.cat===k).forEach(([id,d])=>g.appendChild(shopCard(id,d)));v.appendChild(g);});
-  ["floor","wall"].forEach(kind=>{const h=document.createElement("h2");h.textContent=kind==="floor"?"Suelo de esta habitación":"Paredes de esta habitación";v.appendChild(h);
-    const p=document.createElement("p");p.className="sub";p.textContent=FREE?"Toca un estilo y un color para probarlo.":"Compra un estilo una vez. Los colores son gratis.";v.appendChild(p);
+  const tools=document.createElement("div");tools.className="shoptools";
+  tools.innerHTML=`<button class="btn sm ghost" data-s="open">Abrir todo</button><button class="btn sm ghost" data-s="close">Cerrar todo</button>`;v.appendChild(tools);
+  const secs=[];
+  CATS.forEach(([k,label,sub])=>{const items=[...Object.entries(CATALOG),...Object.entries(WCAT)].filter(([,d])=>d.cat===k);if(!items.length)return;
+    secs.push(shopSection(v,k,label,items.length,sub,body=>{const g=document.createElement("div");g.className="grid";items.forEach(([id,d])=>g.appendChild(shopCard(id,d)));body.appendChild(g);}));});
+  ["floor","wall"].forEach(kind=>secs.push(shopSection(v,kind,kind==="floor"?"Suelo de esta habitación":"Paredes de esta habitación",STYLES[kind].length,
+    FREE?"Toca un estilo y un color para probarlo.":"Compra un estilo una vez. Los colores son gratis.",body=>{
     const box=document.createElement("div");box.className="swatches";const cur=RM[kind+"Style"],color=RM[kind+"Color"];
     STYLES[kind].forEach(t=>{const own=FREE||S.ownedStyles.includes(kind+":"+t.id),b=document.createElement("button");b.className="sw";b.setAttribute("aria-pressed",cur===t.id);
       b.innerHTML=`<i style="background:${SWATCH[kind][t.id]},${color};background-color:${color}"></i><span>${t.name}<small>${cur===t.id?"En uso":FREE?"Usar":own?"Tuyo · usar":coinTag(t.p)}</small></span>`;
       b.onclick=()=>{if(!own){if(S.coins<t.p){toast(`Te faltan ${t.p-S.coins} monedas`);return;}S.coins-=t.p;S.ownedStyles.push(kind+":"+t.id);}RM[kind+"Style"]=t.id;save();refresh();renderShop();};box.appendChild(b);});
-    v.appendChild(box);const dots=document.createElement("div");dots.className="dots";
+    body.appendChild(box);const dots=document.createElement("div");dots.className="dots";
     COLORS[kind].forEach(c=>{const b=document.createElement("button");b.className="dot";b.style.background=c;b.setAttribute("aria-label","Color "+c);b.setAttribute("aria-pressed",color===c);
-      b.onclick=()=>{RM[kind+"Color"]=c;save();renderShop();};dots.appendChild(b);});v.appendChild(dots);});}
+      b.onclick=()=>{RM[kind+"Color"]=c;save();renderShop();};dots.appendChild(b);});body.appendChild(dots);})));
+  tools.querySelector('[data-s="open"]').onclick=()=>secs.forEach(d=>d.open=true);
+  tools.querySelector('[data-s="close"]').onclick=()=>secs.forEach(d=>d.open=false);}
 function renderInv(){const g=document.getElementById("invGrid"),ids=Object.keys(S.inv);
   if(!ids.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1">Aquí aparecen las cosas que guardas.<br>Agrega cosas nuevas desde la Tienda.</div>`;return;}
   g.innerHTML="";ids.forEach(id=>{const el=document.createElement("div");el.className="card";
